@@ -1,34 +1,34 @@
 require_relative 'helpers'
 require_relative 'class_selectors'
 require_relative 'locator'
+require_relative 'scroll_actions'
 
 module TestaAppiumDriver
   class Driver
     include ClassSelectors
-    include ScrollActions
 
     #noinspection RubyScope
-    def execute(from_element, selector, single, strategy = nil, skip_cache = false)
+    def execute(from_element, selector, single, strategy, default_strategy, skip_cache = false)
       disable_wait_for_idle
 
-      strategy = :uiautomator if strategy.nil?
+      strategy = default_strategy if strategy.nil?
 
       from_element_id = from_element.kind_of?(TestaAppiumDriver::Locator) ? from_element.selector : nil
 
       puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.selector} => " : ""}#{strategy}: #{selector}"
       begin
         if @cache[:selector] != selector ||
-          @cache[:time] + 5 <= Time.now ||
-          @cache[:strategy] != strategy ||
-          @cache[:from_element_id] != from_element_id ||
-          skip_cache
-          if strategy == :uiautomator
+            @cache[:time] + 5 <= Time.now ||
+            @cache[:strategy] != strategy ||
+            @cache[:from_element_id] != from_element_id ||
+            skip_cache
+          if strategy == FIND_STRATEGY_UIAUTOMATOR
             if single
               execute_result = from_element.find_element(uiautomator: selector)
             else
               execute_result = from_element.find_elements(uiautomator: selector)
             end
-          elsif strategy == :xpath
+          elsif strategy == FIND_STRATEGY_XPATH
             if single
               execute_result = from_element.find_element(xpath: selector)
             else

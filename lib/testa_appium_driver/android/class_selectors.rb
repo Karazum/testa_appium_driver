@@ -5,6 +5,7 @@ module TestaAppiumDriver
     def add_selector(*args, &block)
       # if class selector is executed from driver, create new locator instance
       if self.kind_of?(TestaAppiumDriver::Driver)
+        args.last[:default_strategy] = @default_strategy
         Locator.new(self, self, *args)
       else
         # class selector is executed from locator, just add child selector criteria
@@ -16,7 +17,7 @@ module TestaAppiumDriver
     # @return Selenium::WebDriver::Element first scrollable element
     def scrollable(selectors = {})
       selectors[:scrollable] = true
-      add_selector(selectors, true)
+      add_selector(selectors)
     end
 
     def self.define_class_selector_method(name, class_name, single)

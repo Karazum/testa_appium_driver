@@ -4,15 +4,15 @@ module TestaAppiumDriver
     def self.define_attribute_method(name, driver_method = nil)
       driver_method = name if driver_method.nil?
 
-      define_method name do
-        eles = execute
+      define_method name do |*args|
+        elements = execute(*args)
 
         @driver.disable_wait_for_idle
         if @single
-          r = eles.send(:attribute, driver_method.to_s)
+          r = elements.send(:attribute, driver_method.to_s)
           r = TestaAppiumDriver::Bounds.from_android(r, @driver) if driver_method.to_s == "bounds"
         else
-          r = eles.map { |e| e.send(:attribute, driver_method.to_s) }
+          r = elements.map { |e| e.send(:attribute, driver_method.to_s) }
           r.map! { |b| TestaAppiumDriver::Bounds.from_android(b, @driver) } if driver_method.to_s == "bounds"
         end
         @driver.enable_wait_for_idle

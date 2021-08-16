@@ -3,19 +3,19 @@ require_relative 'scroll_actions'
 require_relative 'locator/scroll_actions'
 
 module TestaAppiumDriver
+  #noinspection RubyTooManyInstanceVariablesInspection
   class Locator
     include Helpers
     include ClassSelectors
-    include ScrollActions
 
-    attr_accessor :ui_selector
     attr_accessor :xpath_selector
     attr_accessor :single
+
     attr_accessor :driver
     attr_accessor :strategy
 
-    attr_accessor :scroll_container
-    attr_accessor :scroll_params
+    attr_accessor :from_element
+
 
     # @param [TestaAppiumDriver::Driver] driver
     # @param [Hash] params
@@ -23,6 +23,7 @@ module TestaAppiumDriver
     def initialize(driver, from_element, params = {})
       params, selectors = extract_selectors_from_params(params)
 
+      # @type [TestaAppiumDriver::Driver]
       @driver = driver
       single = params[:single]
 
@@ -32,12 +33,14 @@ module TestaAppiumDriver
       @xpath_selector = hash_to_xpath(selectors, single)
 
       @from_element = from_element
-      @strategy = nil
+      @default_strategy = params[:default_strategy]
       @strategy_reason = nil
 
       if is_scrollable_selector(selectors, single)
         params[:scrollable_locator] = self.dup
       end
+
+
       @scrollable_locator = params[:scrollable_locator]
     end
 
@@ -47,26 +50,52 @@ module TestaAppiumDriver
     end
 
     def selector
-      if @strategy == :uiautomator || @strategy.nil?
-        @ui_selector + ")" * @closing_parenthesis + ";"
-      elsif @strategy == :xpath
+      if (@strategy.nil? && @default_strategy == FIND_STRATEGY_UIAUTOMATOR) || @strategy == FIND_STRATEGY_UIAUTOMATOR
+        ui_selector
+      elsif (@strategy.nil? && @default_strategy == FIND_STRATEGY_XPATH) || @strategy == FIND_STRATEGY_XPATH
         @xpath_selector
       end
     end
 
-    # @param [Boolean] skip_cache if true it will skip cache check and store
-    # @return Selenium::WebDriver::Element
-    def execute(skip_cache = false)
-      @driver.execute(@from_element, selector, @single, @strategy, skip_cache)
+    def ui_selector(include_semicolon = true)
+      @ui_selector + ")" * @closing_parenthesis + (include_semicolon ? ";" : "");
     end
 
-    # @return [Boolean] true if it exists in the page regardless if visible or not
+    # @param [Boolean] skip_cache if true it will skip cache check and store
+    # @param [Boolean] force_cache_element, for internal use where we have already the element, and want to execute custom locator methods on it
+    # @return Selenium::WebDriver::Element
+    def execute(skip_cache: false, force_cache_element: nil)
+      return force_cache_element unless force_cache_element.nil?
+      @driver.execute(@from_element, selector, @single, @strategy, @default_strategy, skip_cache)
+    end
+
+
+    def wait_until_exists(timeout_ms = @driver.get_timeouts["implicit"])
+      start_time = Time.now.to_f
+      until exists?
+        raise "wait until exists timeout exceeded" if start_time + timeout_ms > Time.now.to_f
+        sleep EXISTS_WAIT
+      end
+      @locator
+    end
+
+    def wait_while_exists(timeout_ms = @driver.get_timeouts["implicit"])
+      start_time = Time.now.to_f
+      while exists?
+        raise "wait until exists timeout exceeded" if start_time + timeout_ms > Time.now.to_f
+        sleep EXISTS_WAIT
+      end
+      @locator
+    end
+
+
+    # @return [boolean] true if it exists in the page regardless if visible or not
     def exists?
       @driver.disable_wait_for_idle
       @driver.disable_implicit_wait
       found = true
       begin
-        execute(true)
+        execute(skip_cache: true)
       rescue StandardError
         found = false
       end
@@ -90,33 +119,33 @@ module TestaAppiumDriver
       #ele = execute
     end
 
-    def as_scroll(params = {})
+    def as_scrollable
       @scroll_container = self.dup
     end
 
     def parent
-      raise StrategyMixException.new(@strategy, @strategy_reason, :xpath, "parent") if @strategy == :uiautomator
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "parent") if @strategy == FIND_STRATEGY_UIAUTOMATOR
 
-      @strategy = :xpath
+      @strategy = FIND_STRATEGY_XPATH
       @strategy_reason = "parent"
       @xpath_selector += "/.."
     end
 
     def children
       raise "Cannot add children selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, :xpath, "children") if @strategy == :uiautomator
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "children") if @strategy == FIND_STRATEGY_UIAUTOMATOR
 
-      @strategy = :xpath
-      @strategy_reason = "children is only available with xpath"
+      @strategy = FIND_STRATEGY_XPATH
+      @strategy_reason = "children"
       @single = false
       @xpath_selector += "/*"
     end
 
     def from_parent(selectors = {})
       raise "Cannot add from_parent selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, :uiautomator, "from_parent") if @strategy == :xpath
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_UIAUTOMATOR, "from_parent") if @strategy == FIND_STRATEGY_XPATH
 
-      @strategy = :uiautomator
+      @strategy = FIND_STRATEGY_UIAUTOMATOR
       @strategy_reason = "from_parent"
       @closing_parenthesis += 1
       @ui_selector = "#{@ui_selector}.fromParent(#{hash_to_uiautomator(selectors)}"
@@ -127,11 +156,11 @@ module TestaAppiumDriver
     def add_child_selector(selectors, single = true)
       raise "Cannot add child selector to Array" if single && !@single
 
-      if (@strategy.nil? && !single) || @strategy == :xpath
-        @strategy = :xpath
+      if (@strategy.nil? && !single) || @strategy == FIND_STRATEGY_XPATH
+        @strategy = FIND_STRATEGY_XPATH
         @strategy_reason = "multiple child selector"
         add_xpath_child_selectors(selectors, single)
-      elsif @strategy == :uiautomator
+      elsif @strategy == FIND_STRATEGY_UIAUTOMATOR
         add_uiautomator_child_selector(selectors, single)
       else
         # both paths are valid

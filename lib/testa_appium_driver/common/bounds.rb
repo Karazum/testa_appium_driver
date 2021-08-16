@@ -34,7 +34,7 @@ module TestaAppiumDriver
     end
 
     # @param bounds [String] bounds that driver.attribute("bounds") return
-    # @param driver [TestaAppiumDriver]
+    # @param driver [TestaAppiumDriver::Driver]
     def self.from_android(bounds, driver)
       matches = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/)
       raise "Unexpected bounds: #{bounds}" unless matches

@@ -6,24 +6,31 @@ module TestaAppiumDriver
     attr_accessor :driver
 
     # custom options
-    # - force_strategy: forces a find strategy to always be used. Available strategies :uiautomator or :xpath
+    # - default_strategy: default strategy to be used for finding elements. Available strategies :uiautomator or :xpath
     # - scroll_to_find: always try to scroll to element if not found
     def initialize(opts = {})
+      @testa_opts = opts[:testa_appium_driver]
+
+      handle_testa_opts
+
       core = Appium::Core.for(opts) # create a core driver with `opts`
       extend_for(core.device, core.automation_name)
+
+
       @driver = core.start_driver
       @driver.manage.timeouts.implicit_wait = 25
+
 
       invalidate_cache
     end
 
     def invalidate_cache
       @cache = {
-        strategy: nil,
-        selector: nil,
-        element: nil,
-        from_element: nil,
-        time: 0
+          strategy: nil,
+          selector: nil,
+          element: nil,
+          from_element: nil,
+          time: Time.at(0)
       }
     end
 
@@ -81,6 +88,22 @@ module TestaAppiumDriver
       else
         raise "Unknown device #{device}, should be either android, ios or tvos"
       end
+    end
+
+
+    def handle_testa_opts
+      if @testa_opts[:default_strategy].nil?
+        @default_strategy = DEFAULT_FIND_STRATEGY
+      else
+        case @testa_opts[:default_strategy].to_sym
+        when :uiautomator, :xpath
+          @default_strategy = @testa_opts[:default_strategy].to_sym
+        else
+          raise "Default strategy #{@testa_opts[:default_strategy]} not supported"
+        end
+      end
+
+
     end
 
   end
