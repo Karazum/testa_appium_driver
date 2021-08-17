@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TestaAppiumDriver
   FIND_STRATEGY_UIAUTOMATOR = :uiautomator
   FIND_STRATEGY_XPATH = :xpath
@@ -5,14 +7,20 @@ module TestaAppiumDriver
   SCROLL_STRATEGY_UIAUTOMATOR = :uiautomator
   SCROLL_STRATEGY_W3C = :w3c
 
-  SCROLL_CORRECTION_W3C = 45
+
+  SCROLL_CORRECTION_W3C = 30
   SCROLL_ALIGNMENT_THRESHOLD = 25
 
   SCROLL_ACTION_TYPE_SCROLL = :scroll
   SCROLL_ACTION_TYPE_FLING = :fling
+  SCROLL_ACTION_TYPE_DRAG = :drag
 
+
+
+  DEFAULT_UIAUTOMATOR_MAX_SWIPES = 20
 
   DEFAULT_FIND_STRATEGY = :uiautomator
+  DEFAULT_SCROLL_STRATEGY = :uiautomator
   DEFAULT_W3C_MAX_SCROLLS = 7
 
   EXISTS_WAIT = 0.5

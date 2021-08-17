@@ -1,15 +1,52 @@
 module TestaAppiumDriver
   class ScrollActions
 
-
     private
+    # @return [Array]
+    def w3c_each(skip_scroll_to_start, &block)
+      elements = []
+      begin
+        @driver.disable_wait_for_idle
+        @driver.disable_implicit_wait
+        default_deadzone!
+
+        iterations = 0
+
+
+        scroll_to_start unless skip_scroll_to_start
+
+        until is_end_of_scroll?
+          matches = @locator.execute(skip_cache: true)
+          matches.each_with_index do |m|
+            elements << m
+            if block_given? # block is given
+              block.call(m) # use call to execute the block
+            else # the value of block_argument becomes nil if you didn't give a block
+              # block was not given
+            end
+          end
+          iterations += 1
+          break if !@max_scrolls.nil? && iterations == @max_scrolls
+        end
+      rescue => e
+        raise e
+      ensure
+        @driver.enable_implicit_wait
+        @driver.enable_wait_for_idle
+      end
+      elements
+    end
 
     def w3c_align(with)
       @driver.disable_wait_for_idle
-      @driver.disable_implicit_wait
       default_deadzone!
 
+
+
+      @locator.scroll_to unless @raise # called with !
+
       element = @locator.execute
+      @driver.disable_implicit_wait
 
       case with
       when :top
@@ -74,7 +111,9 @@ module TestaAppiumDriver
 
       rounds = 0
       max_scrolls_reached = false
-      until @locator.exists?
+      end_of_scroll_reached = false
+      until @locator.exists? || end_of_scroll_reached
+        end_of_scroll_reached = is_end_of_scroll?
         case direction
         when :down
           page_down
@@ -85,16 +124,56 @@ module TestaAppiumDriver
         when :up
           page_up
         else
-          raise "w3c scroll to must provide direction :up, :right, :down or :left"
+          scroll_to_start
+          @previous_elements = nil
+          if @scrollable.scroll_orientation == :vertical
+            direction = :down
+          else
+            direction = :right
+          end
         end
 
         rounds += 1
+
         max_scrolls_reached = true if rounds == @max_scrolls
         break if rounds == @max_scrolls
       end
-      raise Selenium::WebDriver::Error::NoSuchElementError if max_scrolls_reached
+      raise Selenium::WebDriver::Error::NoSuchElementError if max_scrolls_reached || end_of_scroll_reached
+    end
 
-      @locator
+    def w3c_scroll_to_start_or_end(type)
+      @driver.disable_wait_for_idle
+      @driver.disable_implicit_wait
+      default_deadzone!
+
+      @previous_elements = nil
+
+
+      if type == :start
+        if @scrollable.scroll_orientation == :vertical
+          method = "fling_up"
+        else
+          method = "fling_left"
+        end
+      else
+        if @scrollable.scroll_orientation == :vertical
+          method = "fling_down"
+        else
+          method = "fling_right"
+        end
+      end
+
+      iterations = 0
+      until is_end_of_scroll? || iterations >= 3
+        self.send(method)
+        iterations += 1
+      end
+
+      # reset the flag for end of scroll elements
+      @previous_elements = nil
+
+      @driver.enable_implicit_wait
+      @driver.enable_wait_for_idle
     end
 
 
@@ -131,7 +210,6 @@ module TestaAppiumDriver
 
       @driver.enable_implicit_wait
       @driver.enable_wait_for_idle
-      @locator
     end
 
 
@@ -140,6 +218,8 @@ module TestaAppiumDriver
         duration = 1.8
       elsif type == SCROLL_ACTION_TYPE_FLING
         duration = 0.1
+      elsif type == SCROLL_ACTION_TYPE_DRAG
+        duration = 3.5
       else
         raise "Unknown scroll action type #{type}"
       end
@@ -168,6 +248,13 @@ module TestaAppiumDriver
       [x1, y1]
     end
 
+
+
+    def drag_to(x, y)
+      x0 = @bounds.center.x
+      y0 = @bounds.center.y
+      w3c_action(x0, y0, x, y, SCROLL_ACTION_TYPE_DRAG)
+    end
 
   end
 

@@ -32,11 +32,13 @@ RSpec.describe TestaAppiumDriver do
           autoGrantPermissions: true,
       },
       appium_lib: {
-          :server_url => "http://localhost:4723/wd/hub/"
+        #:server_url => "http://localhost:4723/wd/hub/"
+        :server_url => "http://10.150.0.56:4723/wd/hub/"
       },
       testa_appium_driver: {
-          default_strategy: "xpath",
-          scroll_to_find: false
+        default_find_strategy: "xpath",
+        default_scroll_strategy: "w3c",
+        scroll_to_find: false
       }
     }
 
@@ -56,17 +58,24 @@ RSpec.describe TestaAppiumDriver do
     #
     # sleep 10
 
-    puts d.recycler_view.bounds
-    puts d.text_view(text: "#soccer").align.text
-    d.text_view(text: "Super Extra").scroll_down_to.align_bottom
 
-    puts d.element(id: "viewPager").text_view.text
+    puts d.recycler_view.wait_until_exists
+    d.text_view(text: "Super Extra").scroll_to
+    puts d.element(id: "viewPager").parent.text_view.text
+    d.scrollable.scroll_left_to
 
-    puts d.element(id: "viewPager").element(id: "nameView").scroll_up_to.text
-    puts d.element(id: "viewPager").elements(id: "nameView").scroll_to
+
+
+    puts d.element(id: "viewPager").list_view.element(id: "nameView").scroll_up_to.text
+
+
 
 
     puts d.text_view(text: "#soccer").bounds
+
+    d.element(id: "viewPager").elements(id: "nameView").each do |e|
+      puts e.text
+    end
 
 
     expect(TestaAppiumDriver::VERSION).not_to be nil

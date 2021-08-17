@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'common/bounds'
 require_relative 'common/exceptions/strategy_mix_exception'
 
@@ -7,24 +9,20 @@ module TestaAppiumDriver
 
     # custom options
     # - default_strategy: default strategy to be used for finding elements. Available strategies :uiautomator or :xpath
-    # - scroll_to_find: always try to scroll to element if not found
     def initialize(opts = {})
       @testa_opts = opts[:testa_appium_driver]
-
       handle_testa_opts
 
-      core = Appium::Core.for(opts) # create a core driver with `opts`
+      core = Appium::Core.for(opts)
       extend_for(core.device, core.automation_name)
 
-
       @driver = core.start_driver
-      @driver.manage.timeouts.implicit_wait = 25
+      invalidate_cache!
 
-
-      invalidate_cache
     end
 
-    def invalidate_cache
+
+    def invalidate_cache!
       @cache = {
           strategy: nil,
           selector: nil,
@@ -34,8 +32,8 @@ module TestaAppiumDriver
       }
     end
 
+    # method missing is used to forward methods to the actual appium driver
     def method_missing(method, *args, &block)
-      # we use method missing to forward methods to the actual appium driver
       @driver.send(method, *args, &block)
     end
 
@@ -45,6 +43,7 @@ module TestaAppiumDriver
     end
 
     def enable_implicit_wait
+      raise "Implicit wait is not disabled" if @implicit_wait_ms.nil?
       # get_timeouts always returns in milliseconds, but we should set in seconds
       @driver.manage.timeouts.implicit_wait = @implicit_wait_ms / 1000
     end
@@ -67,8 +66,18 @@ module TestaAppiumDriver
       @driver.window_size(*args)
     end
 
-    private
 
+    def first_and_last_leaf(from_element = @driver)
+      disable_wait_for_idle
+      disable_implicit_wait
+      elements = from_element.find_elements(xpath: "//*[not(*)]")
+      enable_implicit_wait
+      enable_wait_for_idle
+      return nil if elements.count == 0
+      [elements[0], elements[-1]]
+    end
+
+    private
     def extend_for(device, automation_name)
       case device
       when :android
@@ -92,14 +101,26 @@ module TestaAppiumDriver
 
 
     def handle_testa_opts
-      if @testa_opts[:default_strategy].nil?
-        @default_strategy = DEFAULT_FIND_STRATEGY
+      if @testa_opts[:default_find_strategy].nil?
+        @default_find_strategy = DEFAULT_FIND_STRATEGY
       else
-        case @testa_opts[:default_strategy].to_sym
+        case @testa_opts[:default_find_strategy].to_sym
         when :uiautomator, :xpath
-          @default_strategy = @testa_opts[:default_strategy].to_sym
+          @default_find_strategy = @testa_opts[:default_find_strategy].to_sym
         else
-          raise "Default strategy #{@testa_opts[:default_strategy]} not supported"
+          raise "Default find strategy #{@testa_opts[:default_find_strategy]} not supported"
+        end
+      end
+
+
+      if @testa_opts[:default_scroll_strategy].nil?
+        @default_scroll_strategy = DEFAULT_SCROLL_STRATEGY
+      else
+        case @testa_opts[:default_scroll_strategy].to_sym
+        when :w3c, :uiautomator
+          @default_scroll_strategy = @testa_opts[:default_scroll_strategy].to_sym
+        else
+          raise "Default scroll strategy #{@testa_opts[:default_scroll_strategy]} not supported"
         end
       end
 

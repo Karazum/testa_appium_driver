@@ -1,6 +1,28 @@
 module TestaAppiumDriver
+  #noinspection RubyInstanceMethodNamingConvention
   class ScrollActions
     private
+
+    def uiautomator_scroll_to_start_or_end(type)
+      @driver.disable_wait_for_idle
+      @driver.disable_implicit_wait
+
+      scrollable_selector = @scrollable.ui_selector(false)
+      orientation = @scrollable.scroll_orientation == :vertical ? ".setAsVerticalList()" : ".setAsHorizontalList()"
+      scroll_command = type == :start ? ".scrollToBeginning(#{DEFAULT_UIAUTOMATOR_MAX_SWIPES})" : ".scrollToEnd(#{DEFAULT_UIAUTOMATOR_MAX_SWIPES})"
+      cmd = "new UiScrollable(#{scrollable_selector})#{orientation}#{scroll_command};"
+      begin
+        puts "Scroll execute[uiautomator_#{type}]: #{cmd}"
+        @driver.find_element(uiautomator: cmd)
+      rescue
+        # Ignored
+      end
+
+
+      @driver.enable_implicit_wait
+      @driver.enable_wait_for_idle
+    end
+
 
     def uiautomator_scroll_to
       raise "UiAutomator scroll cannot work with specified direction" unless @direction.nil?
@@ -11,8 +33,8 @@ module TestaAppiumDriver
 
       scrollable_selector = @scrollable.ui_selector(false)
       element_selector = @locator.ui_selector(false)
-      cmd = "new UiScrollable(#{scrollable_selector}).scrollIntoView(#{element_selector});"
-      # TODO: support horizontal scroll to
+      orientation_command = @scrollable.scroll_orientation == :vertical ? ".setAsVerticalList()" : ".setAsHorizontalList()"
+      cmd = "new UiScrollable(#{scrollable_selector})#{orientation_command}.scrollIntoView(#{element_selector});"
       begin
         puts "Scroll execute[uiautomator_scroll_to]: #{cmd}"
         @driver.find_element(uiautomator: cmd)
@@ -22,8 +44,6 @@ module TestaAppiumDriver
         @driver.enable_implicit_wait
         @driver.enable_wait_for_idle
       end
-
-      @locator
     end
 
 
@@ -49,7 +69,6 @@ module TestaAppiumDriver
       end
       @driver.enable_implicit_wait
       @driver.enable_wait_for_idle
-      @locator
     end
 
 

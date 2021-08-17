@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require 'json'
 module TestaAppiumDriver
   class Bounds
-    attr_reader :top_left
-    attr_reader :bottom_right
+
     attr_reader :width
     attr_reader :height
     attr_reader :offset
+
 
     # @param top_left [Coordinates]
     # @param bottom_right [Coordinates]
@@ -17,6 +19,7 @@ module TestaAppiumDriver
       @width = bottom_right.x - top_left.x
       @height = bottom_right.y - top_left.y
       @offset = Offset.new(self, window_width, window_height)
+      @center = TestaAppiumDriver::Coordinates.new(@top_left.x + @width/2, @top_left.y + @height / 2)
     end
 
     def as_json
@@ -27,6 +30,25 @@ module TestaAppiumDriver
         bottom_right: @bottom_right.as_json,
         offset: @offset.as_json
       }
+    end
+
+    # @return [TestaAppiumDriver::Offset]
+    def offset
+      @offset
+    end
+
+    # @return [TestaAppiumDriver::Coordinates]
+    def top_left
+      @top_left
+    end
+    # @return [TestaAppiumDriver::Coordinates]
+    def bottom_right
+      @bottom_right
+    end
+
+    # @return [TestaAppiumDriver::Coordinates]
+    def center
+      @center
     end
 
     def to_s
@@ -51,9 +73,6 @@ module TestaAppiumDriver
 
   #noinspection ALL
   class Coordinates
-    attr_reader :x
-    attr_reader :y
-
     def initialize(x, y)
       @x = x.to_i
       @y = y.to_i
@@ -65,14 +84,21 @@ module TestaAppiumDriver
         y: @y
       }
     end
+
+
+    # @return [Integer]
+    def x
+      @x
+    end
+
+    # @return [Integer]
+    def y
+      @y
+    end
   end
 
-  class Offset
-    attr_reader :top
-    attr_reader :right
-    attr_reader :bottom
-    attr_reader :left
 
+  class Offset
     def initialize(bounds, window_width, window_height)
       @top = bounds.top_left.y
       @right = window_width - bounds.bottom_right.x
@@ -88,5 +114,27 @@ module TestaAppiumDriver
         left: @left
       }
     end
+
+
+    # @return [Integer]
+    def top
+      @top
+    end
+
+    # @return [Integer]
+    def right
+      @right
+    end
+
+    # @return [Integer]
+    def bottom
+      @bottom
+    end
+
+    # @return [Integer]
+    def left
+      @left
+    end
+
   end
 end
