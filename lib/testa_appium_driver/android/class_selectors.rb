@@ -16,6 +16,20 @@ module TestaAppiumDriver
     end
 
     # @param selectors [Hash]
+    # @return [TestaAppiumDriver::Locator] first element
+    def element(selectors = {})
+      add_selector(selectors)
+    end
+
+    # @param params [Hash]
+    # @return [TestaAppiumDriver::Locator] all elements that match given selectors
+    def elements(params = {})
+      params[:single] = false
+      add_selector(params)
+    end
+
+
+    # @param selectors [Hash]
     # @return [TestaAppiumDriver::Locator] first scrollable element
     def scrollable(selectors = {})
       selectors[:scrollable] = true
@@ -37,6 +51,7 @@ module TestaAppiumDriver
       add_selector(params)
     end
 
+    # @return [TestaAppiumDriver::Locator]
     def image_views(params = {})
       params[:class] = "android.widget.ImageView"
       params[:single] = false

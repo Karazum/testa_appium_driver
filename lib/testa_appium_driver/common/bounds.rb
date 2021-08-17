@@ -69,6 +69,16 @@ module TestaAppiumDriver
       window_height = ws.height.to_i
       Bounds.new(top_left, bottom_right, window_width, window_height)
     end
+
+    def self.from_ios(rect, driver)
+      rect = JSON.parse(rect)
+      top_left = Coordinates.new(rect["x"], rect["y"])
+      bottom_right = Coordinates.new(top_left.x + rect["width"].to_i, top_left.y + rect["height"].to_i)
+      ws = driver.window_size
+      window_width = ws.width.to_i
+      window_height = ws.height.to_i
+      Bounds.new(top_left, bottom_right, window_width, window_height)
+    end
   end
 
   #noinspection ALL

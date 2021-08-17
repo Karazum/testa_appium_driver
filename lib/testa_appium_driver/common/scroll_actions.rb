@@ -1,6 +1,6 @@
 require_relative 'scroll_actions/json_wire_scroll_actions'
 require_relative 'scroll_actions/w3c_scroll_actions'
-require_relative 'scroll_actions/uiautomator_scroll_actions'
+
 
 module TestaAppiumDriver
   #noinspection RubyResolve,RubyTooManyInstanceVariablesInspection
@@ -29,8 +29,9 @@ module TestaAppiumDriver
         @strategy = SCROLL_STRATEGY_W3C
       end
 
-      @bounds = @scrollable.bounds
 
+      @bounds = @scrollable.bounds
+      puts @bounds.to_s
     end
 
 

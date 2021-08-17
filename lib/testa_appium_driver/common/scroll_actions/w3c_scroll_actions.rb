@@ -102,7 +102,7 @@ module TestaAppiumDriver
         raise "Unsupported align with option: #{with}"
       end
 
-      x1, y1 = apply_w3c_correction(x1, y1, scroll_direction)
+      x1, y1 = apply_w3c_correction(x1, y1, scroll_direction) if @driver.device == :android
       w3c_action(x0, y0, x1, y1, SCROLL_ACTION_TYPE_SCROLL)
     end
 
@@ -203,7 +203,7 @@ module TestaAppiumDriver
         y0 = @bounds.height / 2
         y1 = y0
       end
-      x1, y1 = apply_w3c_correction(x1, y1, direction)
+      x1, y1 = apply_w3c_correction(x1, y1, direction) if @driver.device == :android
 
 
       w3c_action(x0, y0, x1, y1, type)

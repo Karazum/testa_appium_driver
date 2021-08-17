@@ -1,76 +1,51 @@
-require_relative 'helpers'
 require_relative 'class_selectors'
 require_relative 'locator'
-require_relative 'scroll_actions'
+require_relative 'scroll_actions/uiautomator_scroll_actions'
 
 module TestaAppiumDriver
   class Driver
     include ClassSelectors
 
-    #noinspection RubyScope
-    # @param [TestaAppiumDriver::Locator, TestaAppiumDriver::Driver] from_element element from which start the search
-    # @param [String] selector resolved string of a [TestaAppiumDriver::Locator] selector xpath for xpath strategy, java UiSelectors for uiautomator
-    # @param [Boolean] single fetch single or multiple results
-    # @param [Symbol, nil] strategy [TestaAppiumDriver:FIND_STRATEGY_UIAUTOMATOR] or [FIND_STRATEGY_XPATH]
-    # @param [Symbol] default_strategy if strategy is not enforced, default can be used
-    # @param [Boolean] skip_cache to skip checking and storing cache
-    # @return [Selenium::WebDriver::Element, Array] element is returned if single is true, array otherwise
-    def execute(from_element, selector, single, strategy, default_strategy, skip_cache = false)
 
-      # if user wants to wait for element to exist, he can use wait_until_present
-      disable_wait_for_idle
+    # @param [String] command Shell command name to execute for example echo or rm
+    # @param [Array<String>] args Array of command arguments, example: ['-f', '/sdcard/my_file.txt']
+    # @param [Integer] timeout Command timeout in milliseconds. If the command blocks for longer than this timeout then an exception is going to be thrown. The default timeout is 20000 ms
+    # @param [Boolean] includeStderr 	Whether to include stderr stream into the returned result.
+    #noinspection RubyParameterNamingConvention
+    def shell(command, args: nil, timeout: nil, includeStderr: true)
+      params = {
+          command: command,
+          includeStderr: includeStderr
+      }
+      params[:args] = args unless args.nil?
+      params[:timeout] = timeout unless timeout.nil?
+      @driver.execute_script("mobile: shell", params)
+    end
 
-      # if we are not restricted to a strategy, use the default one
-      strategy = default_strategy if strategy.nil?
 
-      # resolve from_element unique id, so that we can cache it properly
-      from_element_id = from_element.kind_of?(TestaAppiumDriver::Locator) ? from_element.selector : nil
-
-      puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.selector} => " : ""}#{strategy}: #{selector}"
-      begin
-        if @cache[:selector] != selector || # cache miss, selector is different
-            @cache[:time] + 5 <= Time.now || # cache miss, older than 5 seconds
-            @cache[:strategy] != strategy || # cache miss, different find strategy
-            @cache[:from_element_id] != from_element_id || # cache miss, search is started from different element
-            skip_cache  # cache is skipped
-
-          if strategy == FIND_STRATEGY_UIAUTOMATOR
-            if single
-              execute_result = from_element.find_element(uiautomator: selector)
-            else
-              execute_result = from_element.find_elements(uiautomator: selector)
-            end
-
-          elsif strategy == FIND_STRATEGY_XPATH
-            if single
-              execute_result = from_element.find_element(xpath: selector)
-            else
-              execute_result = from_element.find_elements(xpath: selector)
-            end
-          else
-            raise "Unknown find_element strategy"
-          end
-
-          unless skip_cache
-            @cache[:selector] = selector
-            @cache[:strategy] = strategy
-            @cache[:time] = Time.now
-            @cache[:from_element_id] = from_element_id
-            @cache[:element] = execute_result
-          end
+    def handle_testa_opts
+      if @testa_opts[:default_find_strategy].nil?
+        @default_find_strategy = DEFAULT_ANDROID_FIND_STRATEGY
+      else
+        case @testa_opts[:default_find_strategy].to_sym
+        when FIND_STRATEGY_UIAUTOMATOR, FIND_STRATEGY_XPATH
+          @default_find_strategy = @testa_opts[:default_find_strategy].to_sym
         else
-          # this is a cache hit, use the element from cache
-          execute_result = @cache[:element]
-          puts "Using cache from #{@cache[:time].strftime("%H:%M:%S.%L")}, strategy: #{@cache[:strategy]}"
+          raise "Default find strategy #{@testa_opts[:default_find_strategy]} not supported"
         end
-      rescue => e
-        raise e
-      ensure
-        enable_wait_for_idle
       end
 
-      execute_result
+
+      if @testa_opts[:default_scroll_strategy].nil?
+        @default_scroll_strategy = DEFAULT_ANDROID_SCROLL_STRATEGY
+      else
+        case @testa_opts[:default_scroll_strategy].to_sym
+        when SCROLL_STRATEGY_W3C, SCROLL_STRATEGY_UIAUTOMATOR
+          @default_scroll_strategy = @testa_opts[:default_scroll_strategy].to_sym
+        else
+          raise "Default scroll strategy #{@testa_opts[:default_scroll_strategy]} not supported"
+        end
+      end
     end
   end
-
 end

@@ -86,40 +86,71 @@ module TestaAppiumDriver
     # @param [Hash] hash selectors for finding elements
     # @param [Boolean] single should the command return first instance or all of matched elements
     # @return [String] hash selectors converted to xpath command
-    def hash_to_xpath(hash, single = true)
+    def hash_to_xpath(device, hash, single = true)
+      for_android = device == :android
+
       command = "//"
 
       if hash[:id] && hash[:id].kind_of?(String) && !hash[:id].match?(/.*:id\//)
         # shorthand ids like myId make full ids => my.app.package:id/myId
         hash[:id] = "#{@driver.current_package}:id/#{hash[:id]}"
       end
-      if hash[:class] && hash[:class].kind_of?(String)
-        command = "#{ command }#{hash[:class] }"
+
+      if for_android
+        if hash[:class] && hash[:class].kind_of?(String)
+          command = "#{ command }#{hash[:class] }"
+        elsif hash[:class] && hash[:class].kind_of?(Regexp)
+          command = "#{ command}*[contains(@class, \"#{ %(#{hash[:class].source }) }\")]"
+        else
+          command = "#{command}*"
+        end
+
+
+        command = "#{ command }[@resource-id=\"#{ %(#{hash[:id] }) }\"]" if hash[:id] && hash[:id].kind_of?(String)
+        command = "#{ command }[contains(@resource-id, \"#{ %(#{hash[:id].source }) }\")]" if hash[:id] && hash[:id].kind_of?(Regexp)
+        command = "#{ command }[@content-desc=\"#{ %(#{hash[:desc] }) }\"]" if hash[:desc] && hash[:desc].kind_of?(String)
+        command = "#{ command }[contains(@content-desc, \"#{ %(#{hash[:desc].source }) }\")]" if hash[:desc] && hash[:desc].kind_of?(Regexp)
+        command = "#{ command }[contains(@class, \"#{ %(#{hash[:class].source }) }\")]" if hash[:class] && hash[:class].kind_of?(Regexp)
+        command = "#{ command }[@text=\"#{ %(#{hash[:text] }) }\"]" if hash[:text] && hash[:text].kind_of?(String)
+        command = "#{ command }[contains(@text, \"#{ %(#{hash[:text].source }) }\")]" if hash[:text] && hash[:text].kind_of?(Regexp)
+        command = "#{ command }[@package=\"#{ %(#{hash[:package] }) }\"]" if hash[:package] && hash[:package].kind_of?(String)
+        command = "#{ command }[contains=(@package, \"#{ %(#{hash[:package].source }) }\")]" if hash[:package] && hash[:package].kind_of?(Regexp)
+        command = "#{ command }[@long-clickable=\"#{ hash[:long_clickable] }\"]" if hash[:long_clickable]
+        command = "#{ command }[@checkable=\"#{ hash[:checkable] }\"]" unless hash[:checkable].nil?
+        command = "#{ command }[@checked=\"#{ hash[:checked] }\"]" unless hash[:checked].nil?
+        command = "#{ command }[@clickable=\"#{ hash[:clickable] }\"]" unless hash[:clickable].nil?
+        command = "#{ command }[@enabled=\"#{ hash[:enabled] }\"]" unless hash[:enabled].nil?
+        command = "#{ command }[@focusable=\"#{ hash[:focusable] }\"]" unless hash[:focusable].nil?
+        command = "#{ command }[@focused=\"#{ hash[:focused] }\"]" unless hash[:focused].nil?
+        command = "#{ command }[@index=\"#{ hash[:index] }\"]" unless hash[:index].nil?
+        command = "#{ command }[@selected=\"#{ hash[:selected] }\"]" unless hash[:selected].nil?
+        command = "#{ command }[@scrollable=\"#{ hash[:scrollable] }\"]" unless hash[:scrollable].nil?
       else
-        command = "#{ command}*"
+        if hash[:type] && hash[:type].kind_of?(String)
+          command = "#{ command }#{hash[:type] }"
+        elsif hash[:type] && hash[:type].kind_of?(Regexp)
+          command = "#{ command}*[contains(@type, \"#{ %(#{hash[:type].source }) }\")]"
+        else
+          command = "#{command}*"
+        end
+
+
+        #  # ios specific
+        hash[:label] = hash[:text] unless hash[:text].nil?
+        hash[:name] = hash[:id] unless hash[:id].nil?
+
+        command = "#{ command }[@enabled=\"#{ hash[:enabled] }\"]" unless hash[:enabled].nil?
+        command = "#{ command }[@label=\"#{ %(#{hash[:label] }) }\"]" if hash[:label] && hash[:label].kind_of?(String)
+        command = "#{ command }[contains(@label, \"#{ %(#{hash[:label].source }) }\")]" if hash[:label] && hash[:label].kind_of?(Regexp)
+        command = "#{ command }[@name=\"#{ %(#{hash[:name] }) }\"]" if hash[:name] && hash[:name].kind_of?(String)
+        command = "#{ command }[contains(@name, \"#{ %(#{hash[:name].source }) }\")]" if hash[:name] && hash[:name].kind_of?(Regexp)
+        command = "#{ command }[@value=\"#{ %(#{hash[:value] }) }\"]" if hash[:value] && hash[:value].kind_of?(String)
+        command = "#{ command }[contains(@value, \"#{ %(#{hash[:value].source }) }\")]" if hash[:value] && hash[:value].kind_of?(Regexp)
+        command = "#{ command }[@width=\"#{ hash[:width] }\"]" unless hash[:width].nil?
+        command = "#{ command }[@height=\"#{ hash[:height] }\"]" unless hash[:height].nil?
+        command = "#{ command }[@visible=\"#{ hash[:visible] }\"]" unless hash[:visible].nil?
       end
 
-      command = "#{ command }[@resource-id=\"#{ %(#{hash[:id] }) }\"]" if hash[:id] && hash[:id].kind_of?(String)
-      command = "#{ command }[contains(@resource-id, \"#{ %(#{hash[:id].source }) }\")]" if hash[:id] && hash[:id].kind_of?(Regexp)
-
-      command = "#{ command }[@content-desc=\"#{ %(#{hash[:desc] }) }\"]" if hash[:desc] && hash[:desc].kind_of?(String)
-      command = "#{ command }[contains(@content-desc, \"#{ %(#{hash[:desc].source }) }\")]" if hash[:desc] && hash[:desc].kind_of?(Regexp)
-      command = "#{ command }[contains(@class, \"#{ %(#{hash[:class].source }) }\")]" if hash[:class] && hash[:class].kind_of?(Regexp)
-      command = "#{ command }[@text=\"#{ %(#{hash[:text] }) }\"]" if hash[:text] && hash[:text].kind_of?(String)
-      command = "#{ command }[contains(@text, \"#{ %(#{hash[:text].source }) }\")]" if hash[:text] && hash[:text].kind_of?(Regexp)
-      command = "#{ command }[@package=\"#{ %(#{hash[:package] }) }\"]" if hash[:package] && hash[:package].kind_of?(String)
-      command = "#{ command }[contains=(@package, \"#{ %(#{hash[:package].source }) }\")]" if hash[:package] && hash[:package].kind_of?(Regexp)
-
-      command = "#{ command }[@long-clickable=\"#{ hash[:long_clickable] }\"]" if hash[:long_clickable]
-      command = "#{ command }[@checkable=\"#{ hash[:checkable] }\"]" unless hash[:checkable].nil?
-      command = "#{ command }[@checked=\"#{ hash[:checked] }\"]" unless hash[:checked].nil?
-      command = "#{ command }[@clickable=\"#{ hash[:clickable] }\"]" unless hash[:clickable].nil?
-      command = "#{ command }[@enabled=\"#{ hash[:enabled] }\"]" unless hash[:enabled].nil?
-      command = "#{ command }[@focusable=\"#{ hash[:focusable] }\"]" unless hash[:focusable].nil?
-      command = "#{ command }[@focused=\"#{ hash[:focused] }\"]" unless hash[:focused].nil?
-      command = "#{ command }[@index=\"#{ hash[:index] }\"]" unless hash[:index].nil?
-      command = "#{ command }[@selected=\"#{ hash[:selected] }\"]" unless hash[:selected].nil?
-      command = "#{ command }[@scrollable=\"#{ hash[:scrollable] }\"]" unless hash[:scrollable].nil?
 
       command += "[1]" if single
 
@@ -134,10 +165,12 @@ module TestaAppiumDriver
       return false unless single
       return true if selectors[:scrollable]
       if selectors[:class] == "androidx.recyclerview.widget.RecyclerView" ||
-        selectors[:class] == "android.widget.HorizontalScrollView" ||
-        selectors[:class] == "android.widget.ScrollView" ||
-        selectors[:class] == "android.widget.ListView"
-        true
+          selectors[:class] == "android.widget.HorizontalScrollView" ||
+          selectors[:class] == "android.widget.ScrollView" ||
+          selectors[:class] == "android.widget.ListView"
+        return true
+      elsif selectors[:type] == "XCUIElementTypeScrollView"
+        return true
       end
       false
     end
@@ -148,29 +181,46 @@ module TestaAppiumDriver
     # @return [Array] first element is params, second are selectors
     def extract_selectors_from_params(params = {})
       selectors = params.select { |key, value| [
-        :id,
-        :longClickable,
-        :desc,
-        :class,
-        :text,
-        :package,
-        :checkable,
-        :checked,
-        :clickable,
-        :enabled,
-        :focusable,
-        :focused,
-        :index,
-        :selected,
-        :scrollable
+          :id,
+          :longClickable,
+          :desc,
+          :class,
+          :text,
+          :package,
+          :checkable,
+          :checked,
+          :clickable,
+          :enabled,
+          :focusable,
+          :focused,
+          :index,
+          :selected,
+          :scrollable,
+
+          # ios specific
+          :type,
+          :label,
+          :x,
+          :y,
+          :width,
+          :height,
+          :visible,
+          :name,
+          :value
       ].include?(key) }
       params = Hash[params.to_a - selectors.to_a]
 
       # default params
       params[:single] = true if params[:single].nil?
       params[:scrollable_locator] = nil if params[:scrollable_locator].nil?
-      params[:default_find_strategy] = DEFAULT_FIND_STRATEGY if params[:default_find_strategy].nil?
-      params[:default_scroll_strategy] = DEFAULT_SCROLL_STRATEGY if params[:default_scroll_strategy].nil?
+      if params[:default_find_strategy].nil?
+        params[:default_find_strategy] = DEFAULT_ANDROID_FIND_STRATEGY if @driver.device == :android
+        params[:default_find_strategy] = DEFAULT_IOS_FIND_STRATEGY if @driver.device == :ios || @driver.device == :tvos
+      end
+      if params[:default_scroll_strategy].nil?
+        params[:default_scroll_strategy] = DEFAULT_ANDROID_SCROLL_STRATEGY if @driver.device == :android
+        params[:default_scroll_strategy] = DEFAULT_IOS_SCROLL_STRATEGY if @driver.device == :ios || @driver.device == :tvos
+      end
 
       return params, selectors
     end

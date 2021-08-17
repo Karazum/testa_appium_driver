@@ -2,7 +2,18 @@ module TestaAppiumDriver
   #noinspection RubyTooManyMethodsInspection
   class Locator
 
-
+    # @param [Float] duration in seconds
+    def long_tap(duration = LONG_TAP_DURATION)
+      action_builder = @driver.action
+      b = bounds
+      f1 = action_builder.add_pointer_input(:touch, "finger1")
+      f1.create_pointer_move(duration: 0, x: b.center.x, y: b.center.y, origin: ::Selenium::WebDriver::Interactions::PointerMove::VIEWPORT)
+      f1.create_pointer_down(:left)
+      f1.create_pause(duration)
+      f1.create_pointer_up(:left)
+      puts "long tap execute:  {x: #{b.center.x}, y: #{b.center.y}}"
+      @driver.perform_actions [f1]
+    end
 
     # @return [Array] array of [Selenium::WebDriver::Element]
     def each(deadzone: nil, skip_scroll_to_start: false, &block)
