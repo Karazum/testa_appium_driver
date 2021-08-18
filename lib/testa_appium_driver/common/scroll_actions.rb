@@ -17,7 +17,7 @@ module TestaAppiumDriver
 
       @raise = params[:raise]
 
-      if @scrollable.nil? || (@scrollable.strategy == FIND_STRATEGY_XPATH && @deadzone.nil?)
+      if @scrollable.nil?
         # if we dont have a scrollable element or if we do have it, but it is not compatible with uiautomator
         # then find first scrollable in document
         @scrollable = @driver.scrollable
@@ -25,13 +25,13 @@ module TestaAppiumDriver
 
       @strategy = nil
       if @scrollable.strategy == FIND_STRATEGY_XPATH || # uiautomator cannot resolve scrollable from a xpath locator
-          !@deadzone.nil?
+          !@deadzone.nil? ||
+          !@scrollable.from_element.instance_of?(TestaAppiumDriver::Driver)  # uiautomator cannot resolve nested scrollable
         @strategy = SCROLL_STRATEGY_W3C
       end
 
 
       @bounds = @scrollable.bounds
-      puts @bounds.to_s
     end
 
 

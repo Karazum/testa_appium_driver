@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="supertesta.com" id="ea45cb27-d516-4292-a1f7-430f02857685" port="22" customName="Supertesta.com" nameFormat="CUSTOM" username="testa">
+        <option name="customName" value="Supertesta.com" />
+      </sshConfig>
+    </configs>
+  </component>
+</project>

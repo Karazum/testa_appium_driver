@@ -3,11 +3,15 @@ require_relative 'locator/attributes'
 module TestaAppiumDriver
   #noinspection RubyTooManyInstanceVariablesInspection
   class Locator
+    attr_accessor :closing_parenthesis
     include ClassSelectors
 
     def init(params, selectors, single)
       @closing_parenthesis = 0
+
+
       @ui_selector = hash_to_uiautomator(selectors, single)
+
 
       if is_scrollable_selector?(selectors, single)
         if selectors[:class] == "android.widget.HorizontalScrollView"
@@ -39,6 +43,10 @@ module TestaAppiumDriver
       @ui_selector + ")" * @closing_parenthesis + (include_semicolon ? ";" : "");
     end
 
+    def ui_selector=(value)
+      @ui_selector = value
+    end
+
 
 
 
@@ -47,11 +55,12 @@ module TestaAppiumDriver
       raise "Cannot add from_parent selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_UIAUTOMATOR, "from_parent") if @strategy != FIND_STRATEGY_UIAUTOMATOR
 
-      @strategy = FIND_STRATEGY_UIAUTOMATOR
-      @strategy_reason = "from_parent"
-      @closing_parenthesis += 1
-      @ui_selector = "#{@ui_selector}.fromParent(#{hash_to_uiautomator(selectors)}"
-      self
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_UIAUTOMATOR
+      locator.strategy_reason = "from_parent"
+      locator.closing_parenthesis += 1
+      locator.ui_selector = "#{locator.ui_selector}.fromParent(#{hash_to_uiautomator(selectors)}"
+      locator
     end
 
 
@@ -61,44 +70,45 @@ module TestaAppiumDriver
       single = params[:single]
       raise "Cannot add child selector to Array" if single && !@single
 
+      locator = self.dup
       if (@strategy.nil? && !single) || @strategy == FIND_STRATEGY_XPATH
-        @strategy = FIND_STRATEGY_XPATH
-        @strategy_reason = "multiple child selector"
-        add_xpath_child_selectors(selectors, single)
+        locator.strategy = FIND_STRATEGY_XPATH
+        locator.strategy_reason = "multiple child selector"
+        add_xpath_child_selectors(locator, selectors, single)
       elsif @strategy == FIND_STRATEGY_UIAUTOMATOR
-        add_uiautomator_child_selector(selectors, single)
+        locator = add_uiautomator_child_selector(locator, selectors, single)
       else
         # both paths are valid
-        add_xpath_child_selectors(selectors, single)
-        add_uiautomator_child_selector(selectors, single)
+        add_xpath_child_selectors(locator, selectors, single)
+        locator = add_uiautomator_child_selector(locator, selectors, single)
       end
 
       if is_scrollable_selector?(selectors, single)
-        @scrollable_locator = self.dup
+        locator.scrollable_locator = self
         if selectors[:class] == "android.widget.HorizontalScrollView"
-          @scrollable_locator.scroll_orientation = :horizontal
+          locator.scrollable_locator.scroll_orientation = :horizontal
         else
-          @scrollable_locator.scroll_orientation = :vertical
+          locator.scrollable_locator.scroll_orientation = :vertical
         end
       end
 
-      @last_selector_adjacent = false
-      self
+      locator.last_selector_adjacent = false
+      locator
     end
 
 
     private
-    def add_uiautomator_child_selector(selectors, single)
-      if @single && !single
+    def add_uiautomator_child_selector(locator, selectors, single)
+      if locator.single && !single
         # current locator stays single, the child locator looks for multiple
-        params = selectors.merge({single: single, scrollable_locator: @scrollable_locator})
-        params[:default_find_strategy] = @default_find_strategy
-        params[:default_scroll_strategy] = @default_scroll_strategy
+        params = selectors.merge({single: single, scrollable_locator: locator.scrollable_locator})
+        params[:default_find_strategy] = locator.default_find_strategy
+        params[:default_scroll_strategy] = locator.default_scroll_strategy
         Locator.new(@driver, self, params)
       else
-        @single = true
-        @ui_selector = "#{@ui_selector}.childSelector(#{hash_to_uiautomator(selectors, single)})"
-        self
+        locator.single = true
+        locator.ui_selector = "#{locator.ui_selector(false)}.childSelector(#{hash_to_uiautomator(selectors, single)})"
+        locator
       end
     end
   end

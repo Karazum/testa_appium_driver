@@ -26,14 +26,15 @@ module TestaAppiumDriver
       single = params[:single]
       raise "Cannot add child selector to Array" if single && !@single
 
-      add_xpath_child_selectors(selectors, single)
+      locator = self.dup
+      add_xpath_child_selectors(locator, selectors, single)
       if is_scrollable_selector?(selectors, single)
-        @scrollable_locator.scroll_orientation = :vertical
-        @scrollable_locator = self.dup
+        locator.scrollable_locator.scroll_orientation = :vertical
+        locator.scrollable_locator = self.dup
       end
 
-      @last_selector_adjacent = false
-      self
+      locator.last_selector_adjacent = false
+      locator
     end
   end
 end

@@ -7,7 +7,7 @@ module TestaAppiumDriver
     def attribute(name, *args)
       elements = execute(*args)
 
-      if elements.kind_of?(Selenium::WebDriver::Element)
+      if elements.instance_of?(Selenium::WebDriver::Element)
         r = elements.send(:attribute, name.to_s)
         r = TestaAppiumDriver::Bounds.from_ios(r, @driver) if name.to_s == "rect"
       else
@@ -17,10 +17,6 @@ module TestaAppiumDriver
       r
     end
 
-
-    def text
-      label
-    end
 
     def accessibility_container(*args)
       attribute("accessibilityContainer", *args)
@@ -55,9 +51,6 @@ module TestaAppiumDriver
       attribute("name", *args)
     end
 
-    def bounds(*args)
-      rect(*args)
-    end
 
     def rect(*args)
       attribute("rect", *args)
@@ -80,5 +73,7 @@ module TestaAppiumDriver
     end
 
 
+    alias_method :bounds, :rect
+    alias_method :text, :label
   end
 end

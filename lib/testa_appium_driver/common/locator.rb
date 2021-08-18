@@ -11,10 +11,16 @@ module TestaAppiumDriver
 
     attr_accessor :driver
     attr_accessor :strategy
+    attr_accessor :strategy_reason
+    attr_accessor :last_selector_adjacent
 
     attr_accessor :from_element
     attr_accessor :scroll_orientation
     attr_accessor :scroll_deadzone
+    attr_accessor :scrollable_locator
+
+    attr_accessor :default_find_strategy
+    attr_accessor :default_scroll_strategy
 
 
     # locator parameters are:
@@ -36,12 +42,21 @@ module TestaAppiumDriver
 
       @single = single
 
-      @xpath_selector = hash_to_xpath(@driver.device, selectors, single)
+      if from_element.instance_of?(Selenium::WebDriver::Element)
+        @xpath_selector = "//*" # to select current element
+        @xpath_selector += hash_to_xpath(@driver.device, selectors, single)[1..-1]
+      else
+        @xpath_selector = hash_to_xpath(@driver.device, selectors, single)
+      end
+
 
       @from_element = from_element
       @default_find_strategy = params[:default_find_strategy]
       @default_scroll_strategy = params[:default_scroll_strategy]
-      @strategy_reason = nil
+
+
+      @strategy = params[:strategy]
+      @strategy_reason = params[:strategy_reason]
 
       # @type [Boolean] used to determine if last selector was one of siblings or children. Only in those selectors we can reliably use xpath array [instance] selector
       @last_selector_adjacent = false
@@ -61,6 +76,14 @@ module TestaAppiumDriver
     # @return [Selenium::WebDriver::Element, Array]
     def execute(skip_cache: false, force_cache_element: nil)
       return force_cache_element unless force_cache_element.nil?
+      # if we are looking for current element, then return from_element
+      # for example when we have driver.element.elements[1].click
+      # elements[2] will be resolved with xpath because we are looking for multiple elements from element
+      # and since we are looking for instance 2, [](instance) method will return new "empty locator"
+      # we are executing click on that "empty locator" so we have to return the instance 2 of elements for the click
+      if @xpath_selector == "//*/*[1]" && @from_element.instance_of?(Selenium::WebDriver::Element)
+        return @from_element
+      end
       @driver.execute(@from_element, selector, @single, @strategy, @default_find_strategy, skip_cache)
     end
 
@@ -108,18 +131,22 @@ module TestaAppiumDriver
 
     def [](instance)
       raise "Cannot add index selector to non-Array" if @single
+
       if (@strategy.nil? && !@last_selector_adjacent) || @strategy == FIND_STRATEGY_UIAUTOMATOR
-        @strategy = FIND_STRATEGY_UIAUTOMATOR
-        @ui_selector = "#{@ui_selector}.instance(#{instance})"
-        @single = true
+        locator = self.dup
+        locator.strategy = FIND_STRATEGY_UIAUTOMATOR
+        locator.ui_selector = "#{@ui_selector}.instance(#{instance})"
+        locator.single = true
+        locator
       else
         from_element = self.execute[instance]
         params = {}.merge({single: true, scrollable_locator: @scrollable_locator})
+        #params[:strategy] = FIND_STRATEGY_XPATH
+        #params[:strategy_reason] = "retrieved instance of a array"
         params[:default_find_strategy] = @default_find_strategy
         params[:default_scroll_strategy] = @default_scroll_strategy
-        return Locator.new(@driver, from_element, params)
+        Locator.new(@driver, from_element, params)
       end
-      self
     end
 
 
@@ -202,12 +229,13 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def parent
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "parent") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add parent selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
+      raise "Cannot add parent selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "parent"
-      @xpath_selector += "/.."
-      self
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "parent"
+      locator.xpath_selector += "/.."
+      locator
     end
 
     # Return all children elements
@@ -216,12 +244,13 @@ module TestaAppiumDriver
       raise "Cannot add children selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "children") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "children"
-      @xpath_selector += "/*"
-      @single = false
-      @last_selector_adjacent = true
-      self
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "children"
+      locator.xpath_selector += "/*"
+      locator.single = false
+      locator.last_selector_adjacent = true
+      locator
     end
 
 
@@ -231,11 +260,12 @@ module TestaAppiumDriver
       raise "Cannot add children selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "child") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "child"
-      @xpath_selector += "/*[1]"
-      @single = true
-      self
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "child"
+      locator.xpath_selector += "/*[1]"
+      locator.single = true
+      locator
     end
 
 
@@ -243,44 +273,47 @@ module TestaAppiumDriver
     def siblings
       raise "Cannot add siblings selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
+      raise "Cannot add siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "siblings"
-      @xpath_selector += "/../*[not(@index=\"#{index}\")]"
-      @single = false
-      @last_selector_adjacent = true
-      self
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "siblings"
+      locator.xpath_selector += "/../*[not(@index=\"#{index}\")]"
+      locator.single = false
+      locator.last_selector_adjacent = true
+      locator
     end
 
     # @return [TestaAppiumDriver::Locator]
     def preceding_siblings
       raise "Cannot add preceding_siblings selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add preceding_siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
+      raise "Cannot add preceding_siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "preceding_siblings"
-      @xpath_selector += "/../*[position() < #{index + 1}]" # position() starts from 1
-      @single = false
-      @last_selector_adjacent = true
-      self
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "preceding_siblings"
+      locator.xpath_selector += "/../*[position() < #{index + 1}]" # position() starts from 1
+      locator.single = false
+      locator.last_selector_adjacent = true
+      locator
     end
 
     # @return [TestaAppiumDriver::Locator]
     def preceding_sibling
       raise "Cannot add preceding_sibling selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_sibling") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add preceding siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
+      raise "Cannot add preceding siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "preceding_sibling"
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "preceding_sibling"
       i = index
-      @single = true
+      locator.single = true
       return nil if i == 0
-      @xpath_selector += "/../*[@index=\"#{i - 1}\"]"
-      @last_selector_adjacent = true
-      self
+      locator.xpath_selector += "/../*[@index=\"#{i - 1}\"]"
+      locator.last_selector_adjacent = true
+      locator
     end
 
 
@@ -288,30 +321,32 @@ module TestaAppiumDriver
     def following_siblings
       raise "Cannot add following_siblings selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add following_siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
+      raise "Cannot add following_siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "following_siblings"
-      @xpath_selector += "/../*[position() > #{index + 1}]" # position() starts from 1
-      @single = false
-      @last_selector_adjacent = true
-      self
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "following_siblings"
+      locator.xpath_selector += "/../*[position() > #{index + 1}]" # position() starts from 1
+      locator.single = false
+      locator.last_selector_adjacent = true
+      locator
     end
 
     # @return [TestaAppiumDriver::Locator]
     def following_sibling
       raise "Cannot add following_sibling selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_sibling") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add following_sibling selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
+      raise "Cannot add following_sibling selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
 
-      @strategy = FIND_STRATEGY_XPATH
-      @strategy_reason = "following_sibling"
+      locator = self.dup
+      locator.strategy = FIND_STRATEGY_XPATH
+      locator.strategy_reason = "following_sibling"
       i = index
-      @single = true
+      locator.single = true
       return nil if i == 0
-      @xpath_selector += "/../*[@index=\"#{i + 1}\"]"
-      @last_selector_adjacent = true
-      self
+      locator.xpath_selector += "/../*[@index=\"#{i + 1}\"]"
+      locator.last_selector_adjacent = true
+      locator
     end
 
 
@@ -327,10 +362,9 @@ module TestaAppiumDriver
       end
     end
 
-    def add_xpath_child_selectors(selectors, single)
-      @single = false unless single # switching from single result to multiple
-      @xpath_selector += hash_to_xpath(@driver.device, selectors, single)
-      self
+    def add_xpath_child_selectors(locator, selectors, single)
+      locator.single = false unless single # switching from single result to multiple
+      locator.xpath_selector += hash_to_xpath(@driver.device, selectors, single)
     end
   end
 

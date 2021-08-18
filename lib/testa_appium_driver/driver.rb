@@ -15,7 +15,8 @@ module TestaAppiumDriver
     # custom options
     # - default_strategy: default strategy to be used for finding elements. Available strategies :uiautomator or :xpath
     def initialize(opts = {})
-      @testa_opts = opts[:testa_appium_driver]
+      @testa_opts = opts[:testa_appium_driver] || {}
+
 
 
       core = Appium::Core.for(opts)
@@ -29,11 +30,8 @@ module TestaAppiumDriver
       invalidate_cache!
 
 
-      testa_driver = self
-      Selenium::WebDriver::Element.define_method(:get_driver) do
-        testa_driver
-      end
 
+      extend_element_with_driver(opts[:caps][:udid])
     end
 
 
@@ -45,6 +43,22 @@ module TestaAppiumDriver
           from_element: nil,
           time: Time.at(0)
       }
+    end
+
+    #noinspection RubyClassVariableUsageInspection
+    def extend_element_with_driver(udid)
+      Selenium::WebDriver::Element.define_singleton_method(:set_driver) do |driver|
+        udid = "unknown" if udid.nil?
+        @@drivers ||={}
+        @@drivers[udid] = driver
+      end
+
+      Selenium::WebDriver::Element.set_driver(self)
+      Selenium::WebDriver::Element.define_method(:get_driver) do
+        udid = self.instance_variable_get(:@bridge).instance_variable_get(:@capabilities).instance_variable_get(:@capabilities)["udid"]
+        udid = "unknown" if udid.nil?
+        @@drivers[udid]
+      end
     end
 
 

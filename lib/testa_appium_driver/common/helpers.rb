@@ -31,10 +31,17 @@ module TestaAppiumDriver
 
       if hash[:id] && hash[:id].kind_of?(String) && !hash[:id].match?(/.*:id\//)
         # shorthand ids like myId make full ids => my.app.package:id/myId
-        hash[:id] = "#{@driver.current_package}:id/#{hash[:id]}"
+
+        if hash[:id][0] == "="
+          id = hash[:id][1..-1]
+        else
+          id = "#{@driver.current_package}:id/#{hash[:id]}"
+        end
+      else
+        id = hash[:id]
       end
-      command = "#{ command }.resourceId(\"#{ %(#{ hash[:id] }) }\")" if hash[:id] && hash[:id].kind_of?(String)
-      command = "#{ command }.resourceIdMatches(\"#{ %(#{ hash[:id].source }) }\")" if hash[:id] && hash[:id].kind_of?(Regexp)
+      command = "#{ command }.resourceId(\"#{ %(#{ id }) }\")" if id && id.kind_of?(String)
+      command = "#{ command }.resourceIdMatches(\"#{ %(#{ id.source }) }\")" if id && id.kind_of?(Regexp)
       command = "#{ command }.description(\"#{ %(#{ hash[:desc] }) }\")" if hash[:desc] && hash[:desc].kind_of?(String)
       command = "#{ command }.descriptionMatches(\"#{ %(#{ hash[:desc].source }) }\")" if hash[:desc] && hash[:desc].kind_of?(Regexp)
       command = "#{ command }.className(\"#{ %(#{ hash[:class] }) }\")" if hash[:class] && hash[:class].kind_of?(String)
@@ -89,11 +96,18 @@ module TestaAppiumDriver
     def hash_to_xpath(device, hash, single = true)
       for_android = device == :android
 
+
       command = "//"
 
       if hash[:id] && hash[:id].kind_of?(String) && !hash[:id].match?(/.*:id\//)
         # shorthand ids like myId make full ids => my.app.package:id/myId
-        hash[:id] = "#{@driver.current_package}:id/#{hash[:id]}"
+        if hash[:id][0] == "="
+          id = hash[:id][1..-1]
+        else
+          id = "#{@driver.current_package}:id/#{hash[:id]}"
+        end
+      else
+        id = hash[:id]
       end
 
       if for_android
@@ -106,8 +120,8 @@ module TestaAppiumDriver
         end
 
 
-        command = "#{ command }[@resource-id=\"#{ %(#{hash[:id] }) }\"]" if hash[:id] && hash[:id].kind_of?(String)
-        command = "#{ command }[contains(@resource-id, \"#{ %(#{hash[:id].source }) }\")]" if hash[:id] && hash[:id].kind_of?(Regexp)
+        command = "#{ command }[@resource-id=\"#{ %(#{ id }) }\"]" if  id &&  id.kind_of?(String)
+        command = "#{ command }[contains(@resource-id, \"#{ %(#{ id.source }) }\")]" if  id &&  id.kind_of?(Regexp)
         command = "#{ command }[@content-desc=\"#{ %(#{hash[:desc] }) }\"]" if hash[:desc] && hash[:desc].kind_of?(String)
         command = "#{ command }[contains(@content-desc, \"#{ %(#{hash[:desc].source }) }\")]" if hash[:desc] && hash[:desc].kind_of?(Regexp)
         command = "#{ command }[contains(@class, \"#{ %(#{hash[:class].source }) }\")]" if hash[:class] && hash[:class].kind_of?(Regexp)
