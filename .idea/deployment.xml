@@ -5,13 +5,13 @@
       <paths name="supertesta.com">
         <serverdata>
           <mappings>
-            <mapping deploy="/testa_docker/path_data\testa_appium_driver" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/testa_docker/path_data/testa_appium_driver" local="$PROJECT_DIR$" web="/" />
           </mappings>
           <excludedPaths>
             <excludedPath local="true" path="$PROJECT_DIR$/.idea" />
             <excludedPath local="true" path="$PROJECT_DIR$/tmp" />
-            <excludedPath local="true" path="$PROJECT_DIR$/testa_appium_driver.iml" />
             <excludedPath local="true" path="$PROJECT_DIR$/Gemfile.lock" />
+            <excludedPath local="true" path="$PROJECT_DIR$/testa_appium_driver.iml" />
           </excludedPaths>
         </serverdata>
       </paths>

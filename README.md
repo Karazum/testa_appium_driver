@@ -39,9 +39,23 @@ And apks will be located in `./node_modules/appium-uiautomator2-server/apks`. In
 and make sure you have the `skipServerInstallation: true` capability when starting the driver.
 ## Usage
 
-### class selectors
+### initialization
+```ruby
+opts = {
+    caps: {
+        platformName: "Android",
+        deviceName: "MyPhone",
+        app: "/path/to/your/apk",
+        udid: "your_phone_udid",
+        automationName: "uiautomator2",
+        skipServerInstallation: true, # if uiautomator server is manually installed
+        enableMultiWindows: true, # enables appium to see some otherwise "hidden" elements
+    }
+}
+driver = TestaAppiumDriver::Driver.new(opts)
+```
 
-#### example 1 
+#### Example 1 
 ```ruby
 driver.linear_layout.button(id: "com.package.name:id/myElementId").click
 ```
@@ -51,20 +65,21 @@ underlying selectors:<br>
 xpath: `//android.widget.LinearLayout[1]//android.widget.Button[@resource-id="com.package.name:id/myElementId"]` <br>
 uiautomator: `new UiSelector().className("android.widget.LinearLayout").instance(0).childSelector(new UiSelector.className("android.widget.Button").resourceId("com.package.name:id/myElementId")));`<br>
 
-#### example 2
+#### Example 2
 ```ruby
 driver.linear_layout(id: "myShortIdExample").parent.text_view.text
 ```
 Testa driver converts shorthand ids(that dont have :id/) to full ids
 by reading the current package under test and prepending it to the shorthand id. If you don't want to prepend the package
 name to the id, use = sign before the id, for example `id: "=idWithoutAPackageName"`.
+
+
 Because elements are fetched only once needed, we can use the parent, siblings, following and preceding siblings selectors.<br>
-Note: parent selector can only be used with the xpath strategy<br>
 underlying selectors:<br>
 xpath: `//android.widget.LinearLayout[@resource-id="com.package.name:id/myShortIdExample"][1]/../android.widget.TextView[1]` <br>
 uiautomator: `exception: parent selector cannot be used with uiautomator strategy`
 
-# example 3
+#### Example 3
 ```ruby
 driver.list_view(bottom: 200).edit_text(text: "Looking for this text").scroll_to.align!(:bottom).enabled?
 ```
@@ -79,6 +94,7 @@ Selector can be a scrollable container if  `scrollable: true` or is one of the s
 - android.widget.ScrollView
 - android.widget.HorizontalScrollView
 - androidx.recyclerview.widget.RecyclerView
+- XCUIElementTypeScrollView
 
 If the selector chain does not contain a scrollable container, a `driver.scrollabe` command will be executed to
 retrieve the first scrollable element in page.
@@ -93,7 +109,7 @@ The command marks the last selector as scrollable container.
 
 
 
-# example 4
+#### Example 4
 ```ruby
 driver.buttons.each do |element|
   puts element.text
@@ -105,7 +121,7 @@ container is reached and all buttons are found.
 
 
 
-# example 5
+#### Example 5 (Invalid combination)
 ```ruby
 driver.frame_layout.from_parent.button(text: "My Cool text").siblings
 ```
@@ -113,6 +129,183 @@ This example demonstrates a invalid selector because it cannot be resovled with 
 It will raise StrategyMixException because from_parent selector can only be used with uiautomator strategy and
 siblings selector can only be used with xpath strategy.
 
+
+# Methods 
+
+## Android
+### Selectors
+- element
+- elements
+- scrollable
+- scrollables
+- image_view
+- image_views
+- frame_layout
+- frame_layouts
+- linear_layout
+- linear_layouts
+- view
+- views
+- edit_text
+- edit_texts
+- view_group
+- view_groups
+- relative_layout
+- relative_layouts
+- recycler_view
+- recycler_views
+- button
+- buttons
+- image_button
+- image_buttons
+- horizontal_scroll_view
+- horizontal_scroll_views
+- scroll_view
+- scroll_views
+- view_pager
+- view_pagers
+- check_box
+- check_boxes
+- list_view
+- list_views
+- progress_bar
+- progress_bars
+- radio_button
+- radio_buttons
+- radio_group
+- radio_groups
+- search_view
+- search_views
+- spinner
+- spinners
+- toast
+- toasts
+- toolbar
+- toolbars
+- text_view
+- text_views
+
+Adjacent selectors
+- from_parent
+- parent
+- child
+- children
+- siblings
+- preceding_sibling
+- preceding_siblings
+- following_sibling
+- following_siblings
+
+
+Selector arguments
+- id
+- long_clickable
+- desc
+- class
+- text
+- package
+- checkable
+- checked
+- clickable
+- enabled
+- focusable
+- focused
+- index
+- selected
+- scrollable
+
+### Attributes
+- text
+- package
+- class_name
+- checkable?
+- checked?
+- clickable?
+- desc
+- enabled?
+- focusable?
+- focused?
+- long_clickable?
+- password
+- id
+- scrollable?
+- selected?
+- displayed?
+- selection_start
+- selection_end
+- bounds
+- index
+--------------------------
+# iOS
+## Type Selectors 
+- element
+- elements
+- window
+- windows
+- other
+- others
+- navigation_bar
+- navigation_bars
+- button
+- buttons
+- image
+- images
+- static_text
+- static_texts
+- scrollable
+- scrollables
+- scroll_view
+- scroll_views
+- table
+- tables
+- cell
+- cells
+
+Adjacent selectors
+- parent
+- child
+- children
+- siblings
+- preceding_sibling
+- preceding_siblings
+- following_sibling
+- following_siblings
+
+Selector arguments
+- enabled
+- type
+- label
+- x
+- y
+- width
+- height
+- visible
+- name
+- value
+
+
+## Attributes
+- accessibility_container
+- accessible?
+- class_name
+- enabled?
+- frame
+- index
+- label, text
+- name
+- rect, bounds
+- selected?
+- type
+- value
+- visible?
+
+
+--------------------------
+# Helpers
+- as_scrollable
+- wait_until_exists
+- wait_while_exists
+- exists?
 
 ## License
 

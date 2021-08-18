@@ -41,15 +41,15 @@ module TestaAppiumDriver
         id = hash[:id]
       end
       command = "#{ command }.resourceId(\"#{ %(#{ id }) }\")" if id && id.kind_of?(String)
-      command = "#{ command }.resourceIdMatches(\"#{ %(#{ id.source }) }\")" if id && id.kind_of?(Regexp)
+      command = "#{ command }.resourceIdMatches(\".*#{ %(#{ id.source }) }.*\")" if id && id.kind_of?(Regexp)
       command = "#{ command }.description(\"#{ %(#{ hash[:desc] }) }\")" if hash[:desc] && hash[:desc].kind_of?(String)
-      command = "#{ command }.descriptionMatches(\"#{ %(#{ hash[:desc].source }) }\")" if hash[:desc] && hash[:desc].kind_of?(Regexp)
+      command = "#{ command }.descriptionMatches(\".*#{ %(#{ hash[:desc].source }) }.*\")" if hash[:desc] && hash[:desc].kind_of?(Regexp)
       command = "#{ command }.className(\"#{ %(#{ hash[:class] }) }\")" if hash[:class] && hash[:class].kind_of?(String)
-      command = "#{ command }.classNameMatches(\"#{ %(#{ hash[:class].source }) }\")" if hash[:class] && hash[:class].kind_of?(Regexp)
+      command = "#{ command }.classNameMatches(\".*#{ %(#{ hash[:class].source }) }.*\")" if hash[:class] && hash[:class].kind_of?(Regexp)
       command = "#{ command }.text(\"#{ %(#{ hash[:text] }) }\")" if hash[:text] && hash[:text].kind_of?(String)
-      command = "#{ command }.textMatches(\"#{ %(#{ hash[:text].source }) }\")" if hash[:text] && hash[:text].kind_of?(Regexp)
+      command = "#{ command }.textMatches(\".*#{ %(#{ hash[:text].source }) }.*\")" if hash[:text] && hash[:text].kind_of?(Regexp)
       command = "#{ command }.packageName(\"#{ %(#{ hash[:package] }) }\")" if hash[:package] && hash[:package].kind_of?(String)
-      command = "#{ command }.packageNameMatches(\"#{ %(#{ hash[:package].source }) }\")" if hash[:package] && hash[:package].kind_of?(Regexp)
+      command = "#{ command }.packageNameMatches(\".*#{ %(#{ hash[:package].source }) }.*\")" if hash[:package] && hash[:package].kind_of?(Regexp)
 
       command = "#{ command }.longClickable(#{ hash[:long_clickable] })" if hash[:long_clickable]
       command = "#{ command }.checkable(#{ hash[:checkable] })" unless hash[:checkable].nil?
@@ -196,7 +196,7 @@ module TestaAppiumDriver
     def extract_selectors_from_params(params = {})
       selectors = params.select { |key, value| [
           :id,
-          :longClickable,
+          :long_clickable,
           :desc,
           :class,
           :text,

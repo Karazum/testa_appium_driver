@@ -26,7 +26,7 @@ module TestaAppiumDriver
       @strategy = nil
       if @scrollable.strategy == FIND_STRATEGY_XPATH || # uiautomator cannot resolve scrollable from a xpath locator
           !@deadzone.nil? ||
-          !@scrollable.from_element.instance_of?(TestaAppiumDriver::Driver)  # uiautomator cannot resolve nested scrollable
+          !@scrollable.from_element.instance_of?(TestaAppiumDriver::Driver) # uiautomator cannot resolve nested scrollable
         @strategy = SCROLL_STRATEGY_W3C
       end
 
@@ -41,8 +41,8 @@ module TestaAppiumDriver
     end
 
     # @return [Array]
-    def each(skip_scroll_to_start,  &block)
-      w3c_each(skip_scroll_to_start,  &block)
+    def each(skip_scroll_to_start, &block)
+      w3c_each(skip_scroll_to_start, &block)
     end
 
     def resolve_strategy
@@ -63,39 +63,19 @@ module TestaAppiumDriver
     end
 
     def scroll_down_to
-      if resolve_strategy == SCROLL_STRATEGY_W3C
-        # we have direction enabled, uiautomator does not support direction specific element search
-        w3c_scroll_to(:down)
-      elsif resolve_strategy == SCROLL_STRATEGY_UIAUTOMATOR
-        raise "scroll_down_to is not supported for uiautomator scroll strategy. Use scroll_to without deadzone"
-      end
+      w3c_scroll_to(:down)
     end
 
     def scroll_up_to
-      if resolve_strategy == SCROLL_STRATEGY_W3C
-        # we have direction enabled, uiautomator does not support direction specific element search
-        w3c_scroll_to(:up)
-      elsif resolve_strategy == SCROLL_STRATEGY_UIAUTOMATOR
-        raise "scroll_up_to is not supported for uiautomator scroll strategy. Use scroll_to without deadzone"
-      end
+      w3c_scroll_to(:up)
     end
 
     def scroll_right_to
-      if resolve_strategy == SCROLL_STRATEGY_W3C
-        # we have direction enabled, uiautomator does not support direction specific element search
-        w3c_scroll_to(:right)
-      elsif resolve_strategy == SCROLL_STRATEGY_UIAUTOMATOR
-        raise "scroll_right_to is not supported for uiautomator scroll strategy. Use scroll_to without deadzone"
-      end
+      w3c_scroll_to(:right)
     end
 
     def scroll_left_to
-      if resolve_strategy == SCROLL_STRATEGY_W3C
-        # we have direction enabled, uiautomator does not support direction specific element search
-        w3c_scroll_to(:left)
-      elsif resolve_strategy == SCROLL_STRATEGY_UIAUTOMATOR
-        raise "scroll_left_to is not supported for uiautomator scroll strategy. Use scroll_to without deadzone"
-      end
+      w3c_scroll_to(:left)
     end
 
     def page_next
@@ -202,6 +182,7 @@ module TestaAppiumDriver
 
 
     private
+
     def is_end_of_scroll?
       old_elements = @previous_elements
       @previous_elements = @scrollable.first_and_last_leaf

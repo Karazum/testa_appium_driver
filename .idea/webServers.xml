@@ -2,7 +2,7 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="b1f6f214-0ed7-4869-998b-43dc6e5c154a" name="supertesta.com">
+      <webServer id="b1f6f214-0ed7-4869-998b-43dc6e5c154a" name="supertesta.com" url="http://something">
         <fileTransfer rootFolder="/ruby_apps" accessType="SFTP" host="supertesta.com" port="22" sshConfigId="ea45cb27-d516-4292-a1f7-430f02857685" sshConfig="Supertesta.com">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />

@@ -98,33 +98,37 @@ module TestaAppiumDriver
     # First scrolls to the beginning of the scrollable container and then scrolls down until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
     def scroll_to(deadzone: nil, max_scrolls: nil, direction: nil)
-      _scroll_to(deadzone, max_scrolls, direction)
+      if direction
+        _scroll_dir_to(deadzone, max_scrolls, direction)
+      else
+        _scroll_to(deadzone, max_scrolls)
+      end
     end
 
 
     # Scrolls down until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
     def scroll_down_to(deadzone: nil, max_scrolls: nil)
-      _scroll_to(deadzone, max_scrolls, :down)
+      _scroll_dir_to(deadzone, max_scrolls, :down)
     end
 
     # Scrolls up until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
     def scroll_up_to(deadzone: nil, max_scrolls: nil)
-      _scroll_to(deadzone, max_scrolls, :up)
+      _scroll_dir_to(deadzone, max_scrolls, :up)
     end
 
     # Scrolls right until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
     def scroll_right_to(deadzone: nil, max_scrolls: nil)
-      _scroll_to(deadzone, max_scrolls, :right)
+      _scroll_dir_to(deadzone, max_scrolls, :right)
     end
 
 
     # Scrolls left until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
     def scroll_left_to(deadzone: nil, max_scrolls: nil)
-      _scroll_to(deadzone, max_scrolls, :left)
+      _scroll_dir_to(deadzone, max_scrolls, :left)
     end
 
     # Scrolls to the start of the scrollable container (top on vertical container, left on horizontal)
@@ -272,7 +276,18 @@ module TestaAppiumDriver
       self
     end
 
-    def _scroll_to(deadzone, max_scrolls, direction)
+    def _scroll_to(deadzone, max_scrolls)
+      deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
+      sa = ScrollActions.new(@scrollable_locator,
+                             locator: self,
+                             deadzone: deadzone,
+                             max_scrolls: max_scrolls,
+                             default_scroll_strategy: @default_scroll_strategy)
+      sa.scroll_to
+      self
+    end
+
+    def _scroll_dir_to(deadzone, max_scrolls, direction)
       deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,
@@ -280,7 +295,8 @@ module TestaAppiumDriver
                              max_scrolls: max_scrolls,
                              direction: direction,
                              default_scroll_strategy: @default_scroll_strategy)
-      sa.scroll_to
+
+      sa.send("scroll_#{direction}_to")
       self
     end
   end
