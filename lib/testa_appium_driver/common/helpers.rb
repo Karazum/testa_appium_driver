@@ -220,7 +220,7 @@ module TestaAppiumDriver
           :height,
           :visible,
           :name,
-          :value
+          :value,
       ].include?(key) }
       params = Hash[params.to_a - selectors.to_a]
 

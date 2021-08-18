@@ -8,6 +8,15 @@ module TestaAppiumDriver
     def init(params, selectors, single)
       if is_scrollable_selector?(selectors, single)
         @scroll_orientation = :vertical
+
+        if !params[:top].nil? || !params[:bottom].nil? || !params[:right].nil? || !params[:left].nil?
+          @scroll_deadzone = {}
+          @scroll_deadzone[:top] = params[:top].to_f unless params[:top].nil?
+          @scroll_deadzone[:bottom] = params[:bottom].to_f unless params[:bottom].nil?
+          @scroll_deadzone[:right] = params[:right].to_f unless params[:right].nil?
+          @scroll_deadzone[:left] = params[:left].to_f unless params[:left].nil?
+        end
+
         params[:scrollable_locator] = self.dup
       end
 
