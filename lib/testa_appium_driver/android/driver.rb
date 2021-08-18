@@ -1,6 +1,7 @@
 require_relative 'class_selectors'
 require_relative 'locator'
 require_relative 'scroll_actions/uiautomator_scroll_actions'
+require_relative 'selenium_element'
 
 module TestaAppiumDriver
   class Driver

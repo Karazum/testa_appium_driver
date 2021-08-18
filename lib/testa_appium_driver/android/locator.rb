@@ -91,7 +91,9 @@ module TestaAppiumDriver
     def add_uiautomator_child_selector(selectors, single)
       if @single && !single
         # current locator stays single, the child locator looks for multiple
-        params = selectors.merge({ single: single, scrollable_locator: @scrollable_locator })
+        params = selectors.merge({single: single, scrollable_locator: @scrollable_locator})
+        params[:default_find_strategy] = @default_find_strategy
+        params[:default_scroll_strategy] = @default_scroll_strategy
         Locator.new(@driver, self, params)
       else
         @single = true

@@ -1,10 +1,11 @@
 module TestaAppiumDriver
-  class Locator
-
+  module AndroidAttributeModule
 
     #noinspection RubyNilAnalysis
     def attribute(name, *args)
       elements = execute(*args)
+
+      @driver = get_driver if self.instance_of?(Selenium::WebDriver::Element)
 
       @driver.disable_wait_for_idle
       if elements.kind_of?(Selenium::WebDriver::Element)
@@ -94,6 +95,11 @@ module TestaAppiumDriver
       attribute("bounds", *args)
     end
 
+  end
+
+  class Locator
+    include TestaAppiumDriver::AndroidAttributeModule
+
 
     # element index in parent element, starts from 0
     #noinspection RubyNilAnalysis,RubyYardReturnMatch
@@ -106,7 +112,5 @@ module TestaAppiumDriver
       raise "Index not found" if index.nil?
       index
     end
-
-
   end
 end

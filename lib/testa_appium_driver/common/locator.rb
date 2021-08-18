@@ -108,15 +108,16 @@ module TestaAppiumDriver
 
     def [](instance)
       raise "Cannot add index selector to non-Array" if @single
-      @single = true
-
       if (@strategy.nil? && !@last_selector_adjacent) || @strategy == FIND_STRATEGY_UIAUTOMATOR
         @strategy = FIND_STRATEGY_UIAUTOMATOR
         @ui_selector = "#{@ui_selector}.instance(#{instance})"
+        @single = true
       else
         from_element = self.execute[instance]
         params = {}.merge({single: true, scrollable_locator: @scrollable_locator})
-        Locator.new(@driver, from_element, params)
+        params[:default_find_strategy] = @default_find_strategy
+        params[:default_scroll_strategy] = @default_scroll_strategy
+        return Locator.new(@driver, from_element, params)
       end
       self
     end
@@ -200,7 +201,7 @@ module TestaAppiumDriver
     # Return parent element
     # @return [TestaAppiumDriver::Locator]
     def parent
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "parent") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "parent") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
       raise "Cannot add parent selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
 
       @strategy = FIND_STRATEGY_XPATH
@@ -213,7 +214,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def children
       raise "Cannot add children selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "children") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "children") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
 
       @strategy = FIND_STRATEGY_XPATH
       @strategy_reason = "children"
@@ -228,7 +229,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def child
       raise "Cannot add children selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "child") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "child") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
 
       @strategy = FIND_STRATEGY_XPATH
       @strategy_reason = "child"
@@ -241,7 +242,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def siblings
       raise "Cannot add siblings selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "siblings") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
       raise "Cannot add siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
 
       @strategy = FIND_STRATEGY_XPATH
@@ -255,7 +256,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def preceding_siblings
       raise "Cannot add preceding_siblings selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_siblings") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
       raise "Cannot add preceding_siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
 
       @strategy = FIND_STRATEGY_XPATH
@@ -269,7 +270,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def preceding_sibling
       raise "Cannot add preceding_sibling selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_sibling") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_sibling") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
       raise "Cannot add preceding siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
 
       @strategy = FIND_STRATEGY_XPATH
@@ -286,7 +287,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def following_siblings
       raise "Cannot add following_siblings selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_siblings") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
       raise "Cannot add following_siblings selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
 
       @strategy = FIND_STRATEGY_XPATH
@@ -300,7 +301,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def following_sibling
       raise "Cannot add following_sibling selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_sibling") if @strategy != FIND_STRATEGY_XPATH
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_sibling") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
       raise "Cannot add following_sibling selector to a retrieved instance of a class array" if @xpath_selector == "//" && !@from_element.nil?
 
       @strategy = FIND_STRATEGY_XPATH

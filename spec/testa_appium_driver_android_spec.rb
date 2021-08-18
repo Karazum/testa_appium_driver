@@ -57,13 +57,13 @@ RSpec.describe TestaAppiumDriver do
     #
     # sleep 10
     d.recycler_view.wait_until_exists
+    puts d.element(id: "viewPager").execute.text_view(text: "#soccer").text
     d.text_view(text: "#soccer").preceding_siblings[2]
     d.text_view(text: "#soccer").preceding_siblings.each_with_index do |e, i|
-      puts d.text_view(text: "#soccer").preceding_siblings[i].className
-      puts e.className
+      puts e.class_name
     end
     puts "--------"
-    puts d.text_view(text: "#soccer").preceding_sibling.className
+    puts d.text_view(text: "#soccer").preceding_sibling.class_name
 
     puts "=============="
     puts d.text_view(text: "#soccer").following_sibling.className

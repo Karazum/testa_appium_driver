@@ -28,6 +28,12 @@ module TestaAppiumDriver
       @driver = core.start_driver
       invalidate_cache!
 
+
+      testa_driver = self
+      Selenium::WebDriver::Element.define_method(:get_driver) do
+        testa_driver
+      end
+
     end
 
 

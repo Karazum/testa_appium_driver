@@ -1,5 +1,6 @@
 require_relative 'type_selectors'
 require_relative 'locator'
+require_relative 'selenium_element'
 
 module TestaAppiumDriver
   class Driver

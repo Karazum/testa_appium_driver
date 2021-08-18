@@ -5,10 +5,15 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def add_selector(*args, &block)
       # if class selector is executed from driver, create new locator instance
-      if self.kind_of?(TestaAppiumDriver::Driver)
+      if self.kind_of?(TestaAppiumDriver::Driver) || self.instance_of?(Selenium::WebDriver::Element)
         args.last[:default_find_strategy] = @default_find_strategy
         args.last[:default_scroll_strategy] = @default_scroll_strategy
-        Locator.new(self, self, *args)
+        if self.instance_of?(Selenium::WebDriver::Element)
+          driver = self.get_driver
+        else
+          driver = self
+        end
+        Locator.new(driver, self, *args)
       else
         # class selector is executed from locator, just add child selector criteria
         self.add_child_selector(*args)
