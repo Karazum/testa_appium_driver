@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency "appium_lib_core", ["= 4.7.0"]
-  spec.add_runtime_dependency "json", ["= 2.1.0"]
+  spec.add_runtime_dependency "json", [">= 2.3.0"]
 
   spec.add_development_dependency "rubocop", ["= 1.19.0"]
   spec.add_development_dependency "rake", ["~> 13.0"]
