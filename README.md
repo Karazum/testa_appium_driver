@@ -62,7 +62,7 @@ And apks will be located in `./node_modules/appium-uiautomator2-server/apks`. In
 and make sure you have the `skipServerInstallation: true` capability when starting the driver.
 ## Usage
 
-### initialization
+### Initialization
 ```ruby
 opts = {
     caps: {
@@ -90,21 +90,22 @@ uiautomator: `new UiSelector().className("android.widget.LinearLayout").instance
 
 #### Example 2
 ```ruby
-driver.linear_layout(id: "myShortIdExample").parent.text_view.text
+driver.linear_layout(id: "myShortIdExample").parent.text_view.wait_until_exists(10).text
 ```
 Testa driver converts shorthand ids(that dont have :id/) to full ids
 by reading the current package under test and prepending it to the shorthand id. If you don't want to prepend the package
 name to the id, use = sign before the id, for example `id: "=idWithoutAPackageName"`.
 
+After adding the `parent` and `text_view` selectors and before retrieving the text value `wait_until_exists(10)` is used to
+wait up to 10 seconds for the element to appear in the page before exception is thrown.  
 
-Because elements are fetched only once needed, we can use the parent, siblings, following and preceding siblings selectors.<br>
 underlying selectors:<br>
 xpath: `//android.widget.LinearLayout[@resource-id="com.package.name:id/myShortIdExample"][1]/../android.widget.TextView[1]` <br>
 uiautomator: `exception: parent selector cannot be used with uiautomator strategy`
 
 #### Example 3
 ```ruby
-driver.list_view(bottom: 200).edit_text(text: "Looking for this text").scroll_to.align!(:bottom).enabled?
+driver.list_view(top: 200).edit_text(text: "Looking for this text").scroll_to.align!(:bottom).enabled?
 ```
 If the element cannot be found in the current view, `scroll_to` action will scroll to start of the scrollable container,
 and start scrolling to the end until the element is found or end is reached. Once found the `align!(:bottom)` command
@@ -148,7 +149,7 @@ container is reached and all buttons are found.
 ```ruby
 driver.frame_layout.from_parent.button(text: "My Cool text").siblings
 ```
-This example demonstrates a invalid selector because it cannot be resovled with xpath nor uiautomator strategy.
+This example demonstrates a invalid selector because it cannot be resolved with xpath nor uiautomator strategy.
 It will raise StrategyMixException because from_parent selector can only be used with uiautomator strategy and
 siblings selector can only be used with xpath strategy.
 
@@ -156,7 +157,7 @@ siblings selector can only be used with xpath strategy.
 # Methods 
 
 ## Android
-### Selectors
+### Class Selectors
 - element
 - elements
 - scrollable
@@ -220,7 +221,7 @@ Adjacent selectors
 - following_siblings
 
 
-Selector arguments
+Class Selector arguments
 - id
 - long_clickable
 - desc
@@ -249,7 +250,7 @@ Selector arguments
 - focusable?
 - focused?
 - long_clickable?
-- password
+- password?
 - id
 - scrollable?
 - selected?
@@ -294,14 +295,14 @@ Adjacent selectors
 - following_sibling
 - following_siblings
 
-Selector arguments
+Type Selector arguments
 - enabled
-- type
+- type, class
 - label
 - width
 - height
 - visible
-- name
+- name, id
 - value
 
 

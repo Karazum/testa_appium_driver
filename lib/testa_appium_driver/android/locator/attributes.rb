@@ -63,8 +63,8 @@ module TestaAppiumDriver
       attribute("longClickable", *args).to_s == "true"
     end
 
-    def password(*args)
-      attribute("password", *args)
+    def password?(*args)
+      attribute("password", *args).to_s == "true"
     end
 
     def id(*args)

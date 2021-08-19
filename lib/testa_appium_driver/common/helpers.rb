@@ -122,6 +122,8 @@ module TestaAppiumDriver
         command = "#{ command }[@selected=\"#{ hash[:selected] }\"]" unless hash[:selected].nil?
         command = "#{ command }[@scrollable=\"#{ hash[:scrollable] }\"]" unless hash[:scrollable].nil?
       else
+
+        hash[:type] = hash[:class] unless hash[:class].nil?
         if hash[:type] && hash[:type].kind_of?(String)
           command = "#{ command }#{hash[:type] }"
         elsif hash[:type] && hash[:type].kind_of?(Regexp)
