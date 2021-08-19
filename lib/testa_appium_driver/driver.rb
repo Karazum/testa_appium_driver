@@ -5,9 +5,11 @@ require_relative 'common/exceptions/strategy_mix_exception'
 require_relative 'common/helpers'
 require_relative 'common/locator'
 require_relative 'common/scroll_actions'
+require_relative 'common/selenium_element'
 
 module TestaAppiumDriver
   class Driver
+    include Helpers
     attr_accessor :driver
     attr_reader :device
     attr_reader :automation_name
@@ -30,8 +32,7 @@ module TestaAppiumDriver
       invalidate_cache!
 
 
-
-      extend_element_with_driver(opts[:caps][:udid])
+      Selenium::WebDriver::Element.set_driver(self, opts[:caps][:udid])
     end
 
 
@@ -45,21 +46,7 @@ module TestaAppiumDriver
       }
     end
 
-    #noinspection RubyClassVariableUsageInspection
-    def extend_element_with_driver(udid)
-      Selenium::WebDriver::Element.define_singleton_method(:set_driver) do |driver|
-        udid = "unknown" if udid.nil?
-        @@drivers ||={}
-        @@drivers[udid] = driver
-      end
 
-      Selenium::WebDriver::Element.set_driver(self)
-      Selenium::WebDriver::Element.define_method(:get_driver) do
-        udid = self.instance_variable_get(:@bridge).instance_variable_get(:@capabilities).instance_variable_get(:@capabilities)["udid"]
-        udid = "unknown" if udid.nil?
-        @@drivers[udid]
-      end
-    end
 
 
     #noinspection RubyScope
@@ -75,13 +62,14 @@ module TestaAppiumDriver
       # if user wants to wait for element to exist, he can use wait_until_present
       disable_wait_for_idle
 
+
       # if not restricted to a strategy, use the default one
       strategy = default_strategy if strategy.nil?
 
       # resolve from_element unique id, so that we can cache it properly
-      from_element_id = from_element.kind_of?(TestaAppiumDriver::Locator) ? from_element.selector : nil
+      from_element_id = from_element.kind_of?(TestaAppiumDriver::Locator) ? from_element.strategy_and_selector[1] : nil
 
-      puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.selector} => " : ""}#{strategy}: #{selector}"
+      puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.strategy_and_selector} => " : ""}#{strategy}: #{selector}"
       begin
         if @cache[:selector] != selector || # cache miss, selector is different
             @cache[:time] + 5 <= Time.now || # cache miss, older than 5 seconds
@@ -89,22 +77,12 @@ module TestaAppiumDriver
             @cache[:from_element_id] != from_element_id || # cache miss, search is started from different element
             skip_cache # cache is skipped
 
-          if strategy == FIND_STRATEGY_UIAUTOMATOR
-            if single
-              execute_result = from_element.find_element(uiautomator: selector)
-            else
-              execute_result = from_element.find_elements(uiautomator: selector)
-            end
-
-          elsif strategy == FIND_STRATEGY_XPATH
-            if single
-              execute_result = from_element.find_element(xpath: selector)
-            else
-              execute_result = from_element.find_elements(xpath: selector)
-            end
+          if single
+            execute_result = from_element.find_element("#{strategy}": selector)
           else
-            raise "Unknown find_element strategy"
+            execute_result = from_element.find_elements("#{strategy}": selector)
           end
+
 
           unless skip_cache
             @cache[:selector] = selector

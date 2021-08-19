@@ -13,6 +13,7 @@ module TestaAppiumDriver
     attr_accessor :strategy
     attr_accessor :strategy_reason
     attr_accessor :last_selector_adjacent
+    attr_accessor :can_use_id_strategy
 
     attr_accessor :from_element
     attr_accessor :scroll_orientation
@@ -37,11 +38,11 @@ module TestaAppiumDriver
       @driver = driver
 
       params, selectors = extract_selectors_from_params(params)
-
       single = params[:single]
 
       @single = single
 
+      selectors[:id] = selectors[:name] unless selectors[:name].nil?
       if from_element.instance_of?(Selenium::WebDriver::Element)
         @xpath_selector = "//*" # to select current element
         @xpath_selector += hash_to_xpath(@driver.device, selectors, single)[1..-1]
@@ -53,6 +54,15 @@ module TestaAppiumDriver
       @from_element = from_element
       @default_find_strategy = params[:default_find_strategy]
       @default_scroll_strategy = params[:default_scroll_strategy]
+
+      @can_use_id_strategy = selectors.keys.count == 1 && !selectors[:id].nil?
+      if @can_use_id_strategy
+        if @driver.device == :android
+          @can_use_id_strategy = resolve_id(selectors[:id])
+        else
+          @can_use_id_strategy = selectors[:id]
+        end
+      end
 
 
       @strategy = params[:strategy]
@@ -84,7 +94,12 @@ module TestaAppiumDriver
       if @xpath_selector == "//*/*[1]" && @from_element.instance_of?(Selenium::WebDriver::Element)
         return @from_element
       end
-      @driver.execute(@from_element, selector, @single, @strategy, @default_find_strategy, skip_cache)
+
+
+      strategy, selector = strategy_and_selector
+
+
+      @driver.execute(@from_element, selector, @single, strategy, @default_find_strategy, skip_cache)
     end
 
 
@@ -128,15 +143,34 @@ module TestaAppiumDriver
       found
     end
 
+    # @return [TestaAppiumDriver::Locator]
+    def first
+      self[0]
+    end
+
+    # @return [TestaAppiumDriver::Locator]
+    def second
+      self[1]
+    end
+
+    # @return [TestaAppiumDriver::Locator]
+    def third
+      self[2]
+    end
+
+    # @return [TestaAppiumDriver::Locator]
+    def last
+      self[-1]
+    end
 
     def [](instance)
       raise "Cannot add index selector to non-Array" if @single
-
-      if (@strategy.nil? && !@last_selector_adjacent) || @strategy == FIND_STRATEGY_UIAUTOMATOR
+      if ((@strategy.nil? && !@last_selector_adjacent) || @strategy == FIND_STRATEGY_UIAUTOMATOR) && instance >= 0
         locator = self.dup
         locator.strategy = FIND_STRATEGY_UIAUTOMATOR
         locator.ui_selector = "#{@ui_selector}.instance(#{instance})"
         locator.single = true
+        locator.can_use_id_strategy = false
         locator
       else
         from_element = self.execute[instance]
@@ -235,6 +269,7 @@ module TestaAppiumDriver
       locator.strategy = FIND_STRATEGY_XPATH
       locator.strategy_reason = "parent"
       locator.xpath_selector += "/.."
+      locator.can_use_id_strategy = false
       locator
     end
 
@@ -250,6 +285,7 @@ module TestaAppiumDriver
       locator.xpath_selector += "/*"
       locator.single = false
       locator.last_selector_adjacent = true
+      locator.can_use_id_strategy = false
       locator
     end
 
@@ -265,6 +301,7 @@ module TestaAppiumDriver
       locator.strategy_reason = "child"
       locator.xpath_selector += "/*[1]"
       locator.single = true
+      locator.can_use_id_strategy = false
       locator
     end
 
@@ -281,6 +318,7 @@ module TestaAppiumDriver
       locator.xpath_selector += "/../*[not(@index=\"#{index}\")]"
       locator.single = false
       locator.last_selector_adjacent = true
+      locator.can_use_id_strategy = false
       locator
     end
 
@@ -296,6 +334,7 @@ module TestaAppiumDriver
       locator.xpath_selector += "/../*[position() < #{index + 1}]" # position() starts from 1
       locator.single = false
       locator.last_selector_adjacent = true
+      locator.can_use_id_strategy = false
       locator
     end
 
@@ -313,6 +352,7 @@ module TestaAppiumDriver
       return nil if i == 0
       locator.xpath_selector += "/../*[@index=\"#{i - 1}\"]"
       locator.last_selector_adjacent = true
+      locator.can_use_id_strategy = false
       locator
     end
 
@@ -329,6 +369,7 @@ module TestaAppiumDriver
       locator.xpath_selector += "/../*[position() > #{index + 1}]" # position() starts from 1
       locator.single = false
       locator.last_selector_adjacent = true
+      locator.can_use_id_strategy = false
       locator
     end
 
@@ -346,6 +387,7 @@ module TestaAppiumDriver
       return nil if i == 0
       locator.xpath_selector += "/../*[@index=\"#{i + 1}\"]"
       locator.last_selector_adjacent = true
+      locator.can_use_id_strategy = false
       locator
     end
 

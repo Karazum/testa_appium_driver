@@ -24,8 +24,11 @@ module TestaAppiumDriver
     end
 
 
-    def selector
-      @xpath_selector
+    def strategy_and_selector
+      if @can_use_id_strategy
+        return FIND_STRATEGY_NAME, @can_use_id_strategy
+      end
+      [FIND_STRATEGY_XPATH, @xpath_selector]
     end
 
 

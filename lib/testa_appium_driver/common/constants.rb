@@ -4,6 +4,8 @@
 module TestaAppiumDriver
   FIND_STRATEGY_UIAUTOMATOR = :uiautomator
   FIND_STRATEGY_XPATH = :xpath
+  FIND_STRATEGY_ID = :id
+  FIND_STRATEGY_NAME = :name
 
   SCROLL_STRATEGY_UIAUTOMATOR = :uiautomator
   SCROLL_STRATEGY_W3C = :w3c

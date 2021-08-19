@@ -3,12 +3,35 @@
 Testa appium driver is a wrapper around the `ruby_lib_core` driver for appium. 
 It leverages all driver features and makes them simple and easy to use. 
 
-There are two key concepts of the testa driver.
-- Elements are fetched only when needed
-- The Best element fetch / scroll strategy is automatically determined
+There are two key concepts in the testa driver
+#### 1. Elements are fetched only when needed
+It allows you to chain all the selectors and use the adjacent selectors without finding each element in the chain.
+For example `driver.linear_layout.list_view.view_group.button` will not execute any find element commands
+because element command is not given. If `click`, `send_keys` or any attribute method is added to the end of chain
+it will execute find_element before triggering the given element command.
 
-For more information regarding the key concepts refer to [key concepts](https://github.com/Karazum/testa_appium_driver/key_concepts)
-For full api documentation refer to [documentation](https://github.com/Karazum/testa_appium_driver/documentation)
+This concept allows you to store the selectors and reuse them later on. For example
+```ruby
+# element is not fetched yet
+my_fancy_progress_bar = driver.linear_layout.progress_bar
+
+puts my_fancy_progress_bar.text # will fetch the element and print the text (output: "You are on the first page")
+driver.button(text: "next page").click # go to the next page that has the same progress bar locator
+
+# will fetch the element again and print the text (output: "You are on the second page")
+# without TestaAppiumDriver, a Stale Object Exception would be thronw
+puts my_fancy_progress_bar.text 
+```
+
+
+#### 2. The Best element find / scroll strategy is automatically determined
+When given an element locator such as the progress_bar in the first concept, testa appium driver automatically determines
+the best find element strategy. The only thing to keep in mind is that you cannot mix strategy specific selectors. 
+Strategy specific selectors are `from_parent` for uiautomator or `parent`, `siblings` or `children` for xpath strategy.
+
+There are also multiple scroll strategies. Android supports both `uiautomator` and `w3c`, while iOS only supports `w3c` 
+scroll strategy. Uiautomator scroll strategy is more fluent and faster but it cannot be limited with single direction
+ element finding, and it does not have sufficient deadzone support.      
 
 
 
@@ -235,7 +258,7 @@ Selector arguments
 - selection_end
 - bounds
 - index
---------------------------
+
 # iOS
 ## Type Selectors 
 - element
@@ -275,8 +298,6 @@ Selector arguments
 - enabled
 - type
 - label
-- x
-- y
 - width
 - height
 - visible
@@ -299,13 +320,42 @@ Selector arguments
 - value
 - visible?
 
+# Scroll actions
+- each
+- align!
+- align_top!
+- align_bottom!
+- align_left!
+- align_right!
+- align
+- align_top
+- align_bottom
+- align_left
+- align_right
+- scroll_to
+- scroll_down_to
+- scroll_up_to
+- scroll_right_to
+- scroll_left_to
+- scroll_to_start
+- scroll_to_end
+- page_down
+- page_up
+- page_left
+- page_right
+- fling_down
+- fling_up
+- fling_left
+- fling_right
+- drag_to
+- drag_by
 
---------------------------
 # Helpers
 - as_scrollable
 - wait_until_exists
 - wait_while_exists
 - exists?
+- long_tap
 
 ## License
 

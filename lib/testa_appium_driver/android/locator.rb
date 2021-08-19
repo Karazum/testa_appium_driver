@@ -36,14 +36,16 @@ module TestaAppiumDriver
 
 
     # resolve selector which will be used for finding element
-    def selector
+    def strategy_and_selector
+      if @can_use_id_strategy
+        return FIND_STRATEGY_ID, @can_use_id_strategy
+      end
       if (@strategy.nil? && @default_find_strategy == FIND_STRATEGY_UIAUTOMATOR) || @strategy == FIND_STRATEGY_UIAUTOMATOR
-        ui_selector
+        [FIND_STRATEGY_UIAUTOMATOR, ui_selector]
       elsif (@strategy.nil? && @default_find_strategy == FIND_STRATEGY_XPATH) || @strategy == FIND_STRATEGY_XPATH
-        @xpath_selector
+        [FIND_STRATEGY_XPATH, @xpath_selector]
       end
     end
-
 
 
     # @param [Boolean] include_semicolon should the semicolon be included at the end
@@ -80,6 +82,7 @@ module TestaAppiumDriver
       raise "Cannot add child selector to Array" if single && !@single
 
       locator = self.dup
+      locator.can_use_id_strategy = false
       if (@strategy.nil? && !single) || @strategy == FIND_STRATEGY_XPATH
         locator.strategy = FIND_STRATEGY_XPATH
         locator.strategy_reason = "multiple child selector"

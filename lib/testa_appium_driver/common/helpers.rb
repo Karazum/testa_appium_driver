@@ -29,17 +29,7 @@ module TestaAppiumDriver
     def hash_to_uiautomator(hash, single = true)
       command = "new UiSelector()"
 
-      if hash[:id] && hash[:id].kind_of?(String) && !hash[:id].match?(/.*:id\//)
-        # shorthand ids like myId make full ids => my.app.package:id/myId
-
-        if hash[:id][0] == "="
-          id = hash[:id][1..-1]
-        else
-          id = "#{@driver.current_package}:id/#{hash[:id]}"
-        end
-      else
-        id = hash[:id]
-      end
+      id = resolve_id(hash[:id])
       command = "#{ command }.resourceId(\"#{ %(#{ id }) }\")" if id && id.kind_of?(String)
       command = "#{ command }.resourceIdMatches(\".*#{ %(#{ id.source }) }.*\")" if id && id.kind_of?(Regexp)
       command = "#{ command }.description(\"#{ %(#{ hash[:desc] }) }\")" if hash[:desc] && hash[:desc].kind_of?(String)
@@ -99,18 +89,10 @@ module TestaAppiumDriver
 
       command = "//"
 
-      if hash[:id] && hash[:id].kind_of?(String) && !hash[:id].match?(/.*:id\//)
-        # shorthand ids like myId make full ids => my.app.package:id/myId
-        if hash[:id][0] == "="
-          id = hash[:id][1..-1]
-        else
-          id = "#{@driver.current_package}:id/#{hash[:id]}"
-        end
-      else
-        id = hash[:id]
-      end
+
 
       if for_android
+        id = resolve_id(hash[:id])
         if hash[:class] && hash[:class].kind_of?(String)
           command = "#{ command }#{hash[:class] }"
         elsif hash[:class] && hash[:class].kind_of?(Regexp)
@@ -237,6 +219,20 @@ module TestaAppiumDriver
       end
 
       return params, selectors
+    end
+
+
+    def resolve_id(id)
+      if id && id.kind_of?(String) && !id.match?(/.*:id\//)
+        # shorthand ids like myId make full ids => my.app.package:id/myId
+        if id[0] == "="
+          return id[1..-1]
+        else
+          return "#{@driver.current_package}:id/#{id}"
+        end
+      else
+        id
+      end
     end
   end
 end
