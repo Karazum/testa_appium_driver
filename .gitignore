@@ -10,6 +10,7 @@
 # rspec failure tracking
 .rspec_status
 
+/.idea/deployment
 /.idea/workspace.xml
 /.idea/misc.xml
 Gemfile.lock
