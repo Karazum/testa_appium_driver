@@ -11,7 +11,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="appium_lib_core (v4.7.0, ruby-2.6.5-p114) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ast (v2.4.2, ruby-2.6.5-p114) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="bundler (v2.1.4, ruby-2.6.5-p114) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="bundler (v2.2.25, ruby-2.6.5-p114) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="childprocess (v3.0.0, ruby-2.6.5-p114) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="diff-lcs (v1.4.4, ruby-2.6.5-p114) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="eventmachine (v1.2.7, ruby-2.6.5-p114) [gem]" level="application" />
@@ -39,41 +39,7 @@
   </component>
   <component name="RakeTasksCache">
     <option name="myRootTask">
-      <RakeTaskImpl id="rake">
-        <subtasks>
-          <RakeTaskImpl description="Build testa_appium_driver-0.1.0.gem into the pkg directory" fullCommand="build" id="build" />
-          <RakeTaskImpl id="build">
-            <subtasks>
-              <RakeTaskImpl description="Generate SHA512 checksum if testa_appium_driver-0.1.0.gem into the checksums directory" fullCommand="build:checksum" id="checksum" />
-            </subtasks>
-          </RakeTaskImpl>
-          <RakeTaskImpl description="Remove any temporary products" fullCommand="clean" id="clean" />
-          <RakeTaskImpl description="Remove any generated files" fullCommand="clobber" id="clobber" />
-          <RakeTaskImpl description="Build and install testa_appium_driver-0.1.0.gem into system gems" fullCommand="install" id="install" />
-          <RakeTaskImpl id="install">
-            <subtasks>
-              <RakeTaskImpl description="Build and install testa_appium_driver-0.1.0.gem into system gems without network access" fullCommand="install:local" id="local" />
-            </subtasks>
-          </RakeTaskImpl>
-          <RakeTaskImpl description="Create tag v0.1.0 and build and push testa_appium_driver-0.1.0.gem to rubygems.org" fullCommand="release[remote]" id="release[remote]" />
-          <RakeTaskImpl description="Run RuboCop" fullCommand="rubocop" id="rubocop" />
-          <RakeTaskImpl id="rubocop">
-            <subtasks>
-              <RakeTaskImpl description="Auto-correct RuboCop offenses" fullCommand="rubocop:auto_correct" id="auto_correct" />
-            </subtasks>
-          </RakeTaskImpl>
-          <RakeTaskImpl description="Run RSpec code examples" fullCommand="spec" id="spec" />
-          <RakeTaskImpl description="" fullCommand="default" id="default" />
-          <RakeTaskImpl description="" fullCommand="release" id="release" />
-          <RakeTaskImpl id="release">
-            <subtasks>
-              <RakeTaskImpl description="" fullCommand="release:guard_clean" id="guard_clean" />
-              <RakeTaskImpl description="" fullCommand="release:rubygem_push" id="rubygem_push" />
-              <RakeTaskImpl description="" fullCommand="release:source_control_push" id="source_control_push" />
-            </subtasks>
-          </RakeTaskImpl>
-        </subtasks>
-      </RakeTaskImpl>
+      <RakeTaskImpl id="rake" />
     </option>
   </component>
 </module>

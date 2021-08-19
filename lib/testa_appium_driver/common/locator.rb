@@ -96,6 +96,7 @@ module TestaAppiumDriver
       end
 
 
+
       strategy, selector = strategy_and_selector
 
 
@@ -105,10 +106,11 @@ module TestaAppiumDriver
 
     # @param [Integer] timeout in seconds
     # @return [TestaAppiumDriver::Locator]
-    def wait_until_exists(timeout = @driver.get_timeouts["implicit"] / 1000)
+    def wait_until_exists(timeout = nil)
+      timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
       start_time = Time.now.to_f
       until exists?
-        raise "wait until exists timeout exceeded" if start_time + timeout > Time.now.to_f
+        raise "wait until exists timeout exceeded" if start_time + timeout < Time.now.to_f
         sleep EXISTS_WAIT
       end
       self
@@ -117,10 +119,11 @@ module TestaAppiumDriver
 
     # @param [Integer] timeout in seconds
     # @return [TestaAppiumDriver::Locator]
-    def wait_while_exists(timeout = @driver.get_timeouts["implicit"] / 1000)
+    def wait_while_exists(timeout = nil)
+      timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
       start_time = Time.now.to_f
       while exists?
-        raise "wait until exists timeout exceeded" if start_time + timeout > Time.now.to_f
+        raise "wait until exists timeout exceeded" if start_time + timeout < Time.now.to_f
         sleep EXISTS_WAIT
       end
       self
@@ -209,7 +212,8 @@ module TestaAppiumDriver
           uiautomator: defined?(self.ui_selector) ? ui_selector : nil,
           xpath: @xpath_selector,
           scrollable: @scrollable_locator.nil? ? nil : @scrollable_locator.to_s,
-          scroll_orientation: @scroll_orientation
+          scroll_orientation: @scroll_orientation,
+          resolved: strategy_and_selector
       }
     end
 

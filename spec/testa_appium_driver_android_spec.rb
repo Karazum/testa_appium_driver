@@ -2,8 +2,7 @@
 
 RSpec.describe TestaAppiumDriver do
   it "Android Test" do
-    require 'em/pure_ruby'
-    require 'appium_lib_core'
+
 
     @options = {
         caps: {

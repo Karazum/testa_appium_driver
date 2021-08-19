@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'em/pure_ruby'
+require 'appium_lib_core'
+
 require_relative 'common/bounds'
 require_relative 'common/exceptions/strategy_mix_exception'
 require_relative 'common/helpers'
