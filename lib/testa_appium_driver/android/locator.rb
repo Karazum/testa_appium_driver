@@ -75,7 +75,7 @@ module TestaAppiumDriver
     end
 
 
-    # @return [Locator] existing locator element
+    # @return [Locator] new child locator element
     def add_child_selector(params)
       params, selectors = extract_selectors_from_params(params)
       single = params[:single]

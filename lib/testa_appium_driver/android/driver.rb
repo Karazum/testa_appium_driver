@@ -8,11 +8,11 @@ module TestaAppiumDriver
     include ClassSelectors
 
 
+    # executes shell command
     # @param [String] command Shell command name to execute for example echo or rm
     # @param [Array<String>] args Array of command arguments, example: ['-f', '/sdcard/my_file.txt']
     # @param [Integer] timeout Command timeout in milliseconds. If the command blocks for longer than this timeout then an exception is going to be thrown. The default timeout is 20000 ms
     # @param [Boolean] includeStderr 	Whether to include stderr stream into the returned result.
-    #noinspection RubyParameterNamingConvention
     def shell(command, args: nil, timeout: nil, includeStderr: true)
       params = {
           command: command,
@@ -24,6 +24,7 @@ module TestaAppiumDriver
     end
 
 
+    private
     def handle_testa_opts
       if @testa_opts[:default_find_strategy].nil?
         @default_find_strategy = DEFAULT_ANDROID_FIND_STRATEGY

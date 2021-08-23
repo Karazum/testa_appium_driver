@@ -2,7 +2,7 @@ module Selenium
   module WebDriver
     class Element
       include TestaAppiumDriver::ClassSelectors
-      include TestaAppiumDriver::AndroidAttributeModule
+      include TestaAppiumDriver::Attributes
     end
   end
 end

@@ -9,13 +9,14 @@ Gem::Specification.new do |spec|
   spec.email = ["karlo.razumovic@gmail.com"]
 
   spec.summary = "Appium made easy"
-  spec.description = "Testa appium driver is a wrapper around ruby_lib_core. It significantly reduces the amount of code need to achieve your goals."
+  spec.description = "Testa appium driver is a wrapper around ruby_lib_core. It leverages all driver features and makes them simple and easy to use, significantly reduces the amount of code needed and enables you to define locators that can be reused"
   spec.homepage = "https://github.com/Karazum/testa_appium_driver"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.4.0"
 
   #spec.metadata["allowed_push_host"] = "Set to 'https://mygemserver.com'"
 
+  spec.metadata["documentation_uri"] = "https://www.rubydoc.info/gems/testa_appium_driver"
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/Karazum/testa_appium_driver"
   spec.metadata["changelog_uri"] = "https://github.com/Karazum/testa_appium_driver"
@@ -30,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency "appium_lib_core", ["= 4.7.0"]
-  spec.add_runtime_dependency "json", [">= 2.3.0"]
+  spec.add_runtime_dependency "json", ["~> 2.3"]
 
   spec.add_development_dependency "rubocop", ["= 1.19.0"]
   spec.add_development_dependency "rake", ["~> 13.0"]

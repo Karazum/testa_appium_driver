@@ -1,7 +1,6 @@
 require_relative 'locator/attributes'
 
 module TestaAppiumDriver
-  #noinspection RubyTooManyInstanceVariablesInspection
   class Locator
     include TypeSelectors
 
@@ -24,6 +23,7 @@ module TestaAppiumDriver
     end
 
 
+    # @return [Array] returns 2 elements. The first is the resolved find element strategy and the second is the resolved selector
     def strategy_and_selector
       if @can_use_id_strategy
         return FIND_STRATEGY_NAME, @can_use_id_strategy
@@ -32,7 +32,8 @@ module TestaAppiumDriver
     end
 
 
-    # @return [Locator] existing locator element
+
+    # @return [Locator] new child locator element
     def add_child_selector(params)
       params, selectors = extract_selectors_from_params(params)
       single = params[:single]

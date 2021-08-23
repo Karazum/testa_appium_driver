@@ -1,7 +1,5 @@
 module TestaAppiumDriver
-  #noinspection RubyYardReturnMatch
-  class Locator
-
+  module Attributes
 
     #noinspection RubyNilAnalysis
     def attribute(name, *args)
@@ -75,5 +73,9 @@ module TestaAppiumDriver
 
     alias_method :bounds, :rect
     alias_method :text, :label
+  end
+  #noinspection RubyYardReturnMatch
+  class Locator
+    include TestaAppiumDriver::Attributes
   end
 end

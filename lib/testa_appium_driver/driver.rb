@@ -13,15 +13,21 @@ require_relative 'common/selenium_element'
 module TestaAppiumDriver
   class Driver
     include Helpers
+
+    # @return [::Appium::Core::Base::Driver] the ruby_lib_core appium driver
     attr_accessor :driver
+
+    # @return [String] iOS or Android
     attr_reader :device
+
+    # @return [String] driver automation name (uiautomator2 or xcuitest)
     attr_reader :automation_name
 
     # custom options
-    # - default_strategy: default strategy to be used for finding elements. Available strategies :uiautomator or :xpath
+    # - default_find_strategy: default strategy to be used for finding elements. Available strategies :uiautomator or :xpath
+    # - default_scroll_strategy: default strategy to be used for scrolling. Available strategies: :uiautomator(android only), :w3c
     def initialize(opts = {})
       @testa_opts = opts[:testa_appium_driver] || {}
-
 
 
       core = Appium::Core.for(opts)
@@ -32,14 +38,15 @@ module TestaAppiumDriver
       handle_testa_opts
 
       @driver = core.start_driver
-      invalidate_cache!
+      invalidate_cache
 
 
       Selenium::WebDriver::Element.set_driver(self, opts[:caps][:udid])
     end
 
 
-    def invalidate_cache!
+    # invalidates current find_element cache
+    def invalidate_cache
       @cache = {
           strategy: nil,
           selector: nil,
@@ -52,11 +59,13 @@ module TestaAppiumDriver
 
 
 
-    #noinspection RubyScope
+    # Executes the find_element with the resolved locator strategy and selector. Find_element might be skipped if cache is hit.
+    # Cache stores last executed find_element with given selector, strategy and from_element. If given values are the same within
+    # last 5 seconds element is retrieved from cache.
     # @param [TestaAppiumDriver::Locator, TestaAppiumDriver::Driver] from_element element from which start the search
-    # @param [String] selector resolved string of a [TestaAppiumDriver::Locator] selector xpath for xpath strategy, java UiSelectors for uiautomator
+    # @param [String] selector resolved string of a [TestaAppiumDriver::Locator] selector xpath for xpath strategy, java UiSelectors for uiautomator or id for ID strategy
     # @param [Boolean] single fetch single or multiple results
-    # @param [Symbol, nil] strategy [TestaAppiumDriver:FIND_STRATEGY_UIAUTOMATOR] or [FIND_STRATEGY_XPATH]
+    # @param [Symbol, nil] strategy [TestaAppiumDriver::FIND_STRATEGY_UIAUTOMATOR], [TestaAppiumDriver::FIND_STRATEGY_XPATH] or [TestaAppiumDriver::FIND_STRATEGY_ID]
     # @param [Symbol] default_strategy if strategy is not enforced, default can be used
     # @param [Boolean] skip_cache to skip checking and storing cache
     # @return [Selenium::WebDriver::Element, Array] element is returned if single is true, array otherwise
@@ -110,21 +119,26 @@ module TestaAppiumDriver
 
 
     # method missing is used to forward methods to the actual appium driver
+    # after the method is executed, find element cache is invalidated
     def method_missing(method, *args, &block)
       @driver.send(method, *args, &block)
+      invalidate_cache
     end
 
+    # disables implicit wait
     def disable_implicit_wait
       @implicit_wait_ms = @driver.get_timeouts["implicit"]
       @driver.manage.timeouts.implicit_wait = 0
     end
 
+    # enables implicit wait, can be called only after disabling implicit wait
     def enable_implicit_wait
       raise "Implicit wait is not disabled" if @implicit_wait_ms.nil?
       # get_timeouts always returns in milliseconds, but we should set in seconds
       @driver.manage.timeouts.implicit_wait = @implicit_wait_ms / 1000
     end
 
+    # disables wait for idle, only executed for android devices
     def disable_wait_for_idle
       if @device == :android
         @wait_for_idle_timeout = @driver.settings.get["waitForIdleTimeout"]
@@ -132,6 +146,7 @@ module TestaAppiumDriver
       end
     end
 
+    # enables wait for idle, only executed for android devices
     def enable_wait_for_idle
       if @device == :android
         raise "Wait for idle is not disabled" if @wait_for_idle_timeout.nil?
@@ -139,12 +154,15 @@ module TestaAppiumDriver
       end
     end
 
+
+    # @@return [String] current package under test
     def current_package
       @driver.current_package
     end
 
-    def window_size(*args)
-      @driver.window_size(*args)
+
+    def window_size
+      @driver.window_size
     end
 
     def back
@@ -169,6 +187,7 @@ module TestaAppiumDriver
     end
 
 
+    # @return [Array<Selenium::WebDriver::Element] array of 2 elements, the first element without children and the last element without children in the current page
     def first_and_last_leaf(from_element = @driver)
       disable_wait_for_idle
       disable_implicit_wait

@@ -7,6 +7,7 @@ module TestaAppiumDriver
     include TypeSelectors
 
 
+    private
     def handle_testa_opts
       if @testa_opts[:default_find_strategy].nil?
         @default_find_strategy = DEFAULT_IOS_FIND_STRATEGY

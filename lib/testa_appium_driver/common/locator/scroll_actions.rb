@@ -2,6 +2,7 @@ module TestaAppiumDriver
   #noinspection RubyTooManyMethodsInspection
   class Locator
 
+    # performs a long tap on the retrieved element
     # @param [Float] duration in seconds
     def long_tap(duration = LONG_TAP_DURATION)
       action_builder = @driver.action
@@ -15,173 +16,238 @@ module TestaAppiumDriver
       @driver.perform_actions [f1]
     end
 
-    # @return [Array] array of [Selenium::WebDriver::Element]
-    def each(deadzone: nil, skip_scroll_to_start: false, &block)
+
+    # scrolls to the start of the scrollable containers and scrolls to the end,
+    # everytime a locator element is found the given block is executed
+    # @return [Array<Selenium::WebDriver::Element>]
+    def each(top: nil, bottom: nil, right: nil, left: nil, direction: nil, &block)
+      deadzone = _process_deadzone(top, bottom, right, left)
       raise "Each can only be performed on multiple elements locator" if @single
       deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,
                              deadzone: deadzone,
                              default_scroll_strategy: @default_scroll_strategy)
-      sa.each(skip_scroll_to_start, &block)
+      if direction.nil?
+        sa.each(&block)
+      else
+        sa.send("each_#{direction}", &block)
+      end
+    end
+
+    # scrolls down from the current page view (without prior scrolling to the top) and
+    # everytime a locator element is found the given block is executed
+    # @return [Array<Selenium::WebDriver::Element>]
+    def each_down(top: nil, bottom: nil, right: nil, left: nil, &block)
+      each(top: top, bottom: bottom, right: right, left: left, direction: :down, &block)
+    end
+
+    # scrolls up from the current page view (without prior scrolling to the bottom) and
+    # everytime a locator element is found the given block is executed
+    # @return [Array<Selenium::WebDriver::Element>]
+    def each_up(top: nil, bottom: nil, right: nil, left: nil, &block)
+      each(top: top, bottom: bottom, right: right, left: left, direction: :up, &block)
+    end
+
+    # scrolls right from the current page view (without prior scrolling to the left) and
+    # everytime a locator element is found the given block is executed
+    # @return [Array<Selenium::WebDriver::Element>]
+    def each_right(top: nil, bottom: nil, right: nil, left: nil, &block)
+      each(top: top, bottom: bottom, right: right, left: left, direction: :right, &block)
+    end
+
+    # scrolls left from the current page view (without prior scrolling to the right) and
+    # everytime a locator element is found the given block is executed
+    # @return [Array<Selenium::WebDriver::Element>]
+    def each_left(top: nil, bottom: nil, right: nil, left: nil, &block)
+      each(top: top, bottom: bottom, right: right, left: left, direction: :left, &block)
     end
 
 
     # Aligns element (by default) on top of the scrollable container, if the element does not exists it will scroll to find it
+    # The element is aligned if the the distance from the top/bottom/right/left of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align(with = :top, deadzone: nil, raise: false)
+    def align(with = :top, top: nil, bottom: nil, right: nil, left: nil, scroll_to_find: false)
       deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,
                              deadzone: deadzone,
-                             default_scroll_strategy: @default_scroll_strategy,
-                             raise: raise)
-      sa.align(with)
+                             default_scroll_strategy: @default_scroll_strategy)
+      sa.align(with, scroll_to_find)
       self
     end
 
     # Aligns element on top of the scrollable container, if the element does not exists it will scroll to find it
+    # The element is aligned if the the distance from the top of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_top(deadzone: nil)
-      align(:top, deadzone: deadzone)
+    def align_top(top: nil, bottom: nil, right: nil, left: nil)
+      align(:top, top: top, bottom: bottom, right: right, left: left)
     end
 
     # Aligns element on bottom of the scrollable container, if the element does not exists it will scroll to find it
+    # The element is aligned if the the distance from the bottom of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_bottom(deadzone: nil)
-      align(:bottom, deadzone: deadzone)
+    def align_bottom(top: nil, bottom: nil, right: nil, left: nil)
+      align(:bottom, top: top, bottom: bottom, right: right, left: left)
     end
 
     # Aligns element on left of the scrollable container, if the element does not exists it will scroll to find it
+    # The element is aligned if the the distance from the left of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_left(deadzone: nil)
-      align(:left, deadzone: deadzone)
+    def align_left(top: nil, bottom: nil, right: nil, left: nil)
+      align(:left, top: top, bottom: bottom, right: right, left: left)
     end
 
     # Aligns element on right of the scrollable container, if the element does not exists it will scroll to find it
+    # The element is aligned if the the distance from the right of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_right(deadzone: nil)
-      align(:right, deadzone: deadzone)
+    def align_right(top: nil, bottom: nil, right: nil, left: nil)
+      align(:right, top: top, bottom: bottom, right: right, left: left)
     end
 
     # Aligns element (by default) on top of the scrollable container, if the element does not exists it raise an exception
+    # The element is aligned if the the distance from the top/bottom/right/left of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align!(with = :top, deadzone: nil)
-      align(with, deadzone: deadzone, raise: true)
+    def align!(with = :top, top: nil, bottom: nil, right: nil, left: nil)
+      align(with, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
     end
 
     # Aligns element on top of the scrollable container, if the element does not exists it raise an exception
+    # The element is aligned if the the distance from the top of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_top!(deadzone: nil)
-      align(:top, deadzone: deadzone, raise: true)
+    def align_top!(top: nil, bottom: nil, right: nil, left: nil)
+      align(:top, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
     end
 
     # Aligns element on bottom of the scrollable container, if the element does not exists it raise an exception
+    # The element is aligned if the the distance from the bottom of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_bottom!(deadzone: nil)
-      align(:bottom, deadzone: deadzone, raise: true)
+    def align_bottom!(top: nil, bottom: nil, right: nil, left: nil)
+      align(:bottom, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
     end
 
     # Aligns element on left of the scrollable container, if the element does not exists it raise an exception
+    # The element is aligned if the the distance from the left of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_left!(deadzone: nil)
-      align(:left, deadzone: deadzone, raise: true)
+    def align_left!(top: nil, bottom: nil, right: nil, left: nil)
+      align(:left, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
     end
 
     # Aligns element on right of the scrollable container, if the element does not exists it raise an exception
+    # The element is aligned if the the distance from the right of the scrollable container is less than [TestaAppiumDriver::SCROLL_ALIGNMENT_THRESHOLD]
+    # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
+    # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_right!(deadzone: nil)
-      align(:right, deadzone: deadzone, raise: true)
+    def align_right!(top: nil, bottom: nil, right: nil, left: nil)
+      align(:right, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
     end
 
 
     # First scrolls to the beginning of the scrollable container and then scrolls down until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
-    def scroll_to(deadzone: nil, max_scrolls: nil, direction: nil)
+    def scroll_to(top: nil, bottom: nil, right: nil, left: nil, max_scrolls: nil, direction: nil)
       if direction
-        _scroll_dir_to(deadzone, max_scrolls, direction)
+        _scroll_dir_to(_process_deadzone(top, bottom, right, left), max_scrolls, direction)
       else
-        _scroll_to(deadzone, max_scrolls)
+        _scroll_to(_process_deadzone(top, bottom, right, left), max_scrolls)
       end
     end
 
 
     # Scrolls down until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
-    def scroll_down_to(deadzone: nil, max_scrolls: nil)
-      _scroll_dir_to(deadzone, max_scrolls, :down)
+    def scroll_down_to(top: nil, bottom: nil, right: nil, left: nil, max_scrolls: nil)
+      _scroll_dir_to(_process_deadzone(top, bottom, right, left), max_scrolls, :down)
     end
 
     # Scrolls up until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
-    def scroll_up_to(deadzone: nil, max_scrolls: nil)
-      _scroll_dir_to(deadzone, max_scrolls, :up)
+    def scroll_up_to(top: nil, bottom: nil, right: nil, left: nil, max_scrolls: nil)
+      _scroll_dir_to(_process_deadzone(top, bottom, right, left), max_scrolls, :up)
     end
 
     # Scrolls right until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
-    def scroll_right_to(deadzone: nil, max_scrolls: nil)
-      _scroll_dir_to(deadzone, max_scrolls, :right)
+    def scroll_right_to(top: nil, bottom: nil, right: nil, left: nil, max_scrolls: nil)
+      _scroll_dir_to(_process_deadzone(top, bottom, right, left), max_scrolls, :right)
     end
 
 
     # Scrolls left until element is found or end is reached
     # @return [TestaAppiumDriver::Locator]
-    def scroll_left_to(deadzone: nil, max_scrolls: nil)
-      _scroll_dir_to(deadzone, max_scrolls, :left)
+    def scroll_left_to(top: nil, bottom: nil, right: nil, left: nil, max_scrolls: nil)
+      _scroll_dir_to(_process_deadzone(top, bottom, right, left), max_scrolls, :left)
     end
 
     # Scrolls to the start of the scrollable container (top on vertical container, left on horizontal)
     # @return [TestaAppiumDriver::Locator]
-    def scroll_to_start(deadzone: nil)
-      _scroll_to_start_or_end(:start, deadzone)
+    def scroll_to_start(top: nil, bottom: nil, right: nil, left: nil)
+      _scroll_to_start_or_end(:start, _process_deadzone(top, bottom, right, left))
     end
 
     # Scrolls to the end of the scrollable container (bottom on vertical container, right on horizontal)
     # @return [TestaAppiumDriver::Locator]
-    def scroll_to_end(deadzone: nil)
-      _scroll_to_start_or_end(:end, deadzone)
+    def scroll_to_end(top: nil, bottom: nil, right: nil, left: nil)
+      _scroll_to_start_or_end(:end, _process_deadzone(top, bottom, right, left))
     end
 
 
     # @return [TestaAppiumDriver::Locator]
-    def page_down(deadzone: nil)
-      _page(:down, deadzone)
+    def page_down(top: nil, bottom: nil, right: nil, left: nil)
+      _page(:down, _process_deadzone(top, bottom, right, left))
     end
 
     # @return [TestaAppiumDriver::Locator]
-    def page_up(deadzone: nil)
-      _page(:up, deadzone)
+    def page_up(top: nil, bottom: nil, right: nil, left: nil)
+      _page(:up, _process_deadzone(top, bottom, right, left))
     end
 
     # @return [TestaAppiumDriver::Locator]
-    def page_left(deadzone: nil)
-      _page(:left, deadzone)
+    def page_left(top: nil, bottom: nil, right: nil, left: nil)
+      _page(:left, _process_deadzone(top, bottom, right, left))
     end
 
     # @return [TestaAppiumDriver::Locator]
-    def page_right(deadzone: nil)
-      _page(:right, deadzone)
+    def page_right(top: nil, bottom: nil, right: nil, left: nil)
+      _page(:right, _process_deadzone(top, bottom, right, left))
     end
 
     # @return [TestaAppiumDriver::Locator]
-    def fling_down(deadzone: nil)
-      _fling(:down, deadzone)
+    def fling_down(top: nil, bottom: nil, right: nil, left: nil)
+      _fling(:down, _process_deadzone(top, bottom, right, left))
     end
 
     # @return [TestaAppiumDriver::Locator]
-    def fling_up(deadzone: nil)
-      _fling(:up, deadzone)
+    def fling_up(top: nil, bottom: nil, right: nil, left: nil)
+      _fling(:up, _process_deadzone(top, bottom, right, left))
     end
 
     # @return [TestaAppiumDriver::Locator]
-    def fling_left(deadzone: nil)
-      _fling(:left, deadzone)
+    def fling_left(top: nil, bottom: nil, right: nil, left: nil)
+      _fling(:left, _process_deadzone(top, bottom, right, left))
     end
 
     # @return [TestaAppiumDriver::Locator]
-    def fling_right(deadzone: nil)
-      _fling(:right, deadzone)
+    def fling_right(top: nil, bottom: nil, right: nil, left: nil)
+      _fling(:right, _process_deadzone(top, bottom, right, left))
     end
 
 
@@ -232,6 +298,18 @@ module TestaAppiumDriver
 
 
     private
+    def _process_deadzone(top, bottom, right, left)
+      deadzone = nil
+      if !top.nil? || !bottom.nil? || !right.nil? || !left.nil?
+        deadzone = {}
+        deadzone[:top] = top unless top.nil?
+        deadzone[:bottom] = bottom unless bottom.nil?
+        deadzone[:right] = right unless right.nil?
+        deadzone[:left] = left unless left.nil?
+      end
+      deadzone
+    end
+
     def _drag_to(x, y)
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,
@@ -239,6 +317,8 @@ module TestaAppiumDriver
       sa.drag_to(x, y)
       self
     end
+
+
     def _page(direction, deadzone)
       deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
       sa = ScrollActions.new(@scrollable_locator,
@@ -266,7 +346,6 @@ module TestaAppiumDriver
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,
                              deadzone: deadzone,
-                             direction: :left,
                              default_scroll_strategy: @default_scroll_strategy)
       if type == :start
         sa.scroll_to_start
@@ -293,7 +372,6 @@ module TestaAppiumDriver
                              locator: self,
                              deadzone: deadzone,
                              max_scrolls: max_scrolls,
-                             direction: direction,
                              default_scroll_strategy: @default_scroll_strategy)
 
       sa.send("scroll_#{direction}_to")

@@ -3,7 +3,7 @@ module TestaAppiumDriver
 
     private
     # @return [Array]
-    def w3c_each(skip_scroll_to_start, &block)
+    def w3c_each(direction, &block)
       elements = []
       begin
         @driver.disable_wait_for_idle
@@ -13,7 +13,14 @@ module TestaAppiumDriver
         iterations = 0
 
 
-        scroll_to_start unless skip_scroll_to_start
+        if direction.nil?
+          scroll_to_start
+          if @scrollable.scroll_orientation == :vertical
+            direction = :down
+          else
+            direction = :right
+          end
+        end
 
         until is_end_of_scroll?
           matches = @locator.execute(skip_cache: true)
@@ -27,6 +34,7 @@ module TestaAppiumDriver
           end
           iterations += 1
           break if !@max_scrolls.nil? && iterations == @max_scrolls
+          self.send("page_#{direction}")
         end
       rescue => e
         raise e
@@ -37,13 +45,13 @@ module TestaAppiumDriver
       elements
     end
 
-    def w3c_align(with)
+    def w3c_align(with, scroll_to_find)
       @driver.disable_wait_for_idle
       default_deadzone!
 
 
 
-      @locator.scroll_to unless @raise # called with !
+      @locator.scroll_to if scroll_to_find
 
       element = @locator.execute
       @driver.disable_implicit_wait

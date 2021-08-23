@@ -3,19 +3,24 @@ require_relative 'scroll_actions/w3c_scroll_actions'
 
 
 module TestaAppiumDriver
-  #noinspection RubyResolve,RubyTooManyInstanceVariablesInspection
-  class ScrollActions
 
+  # Class for handling scroll actions
+  class ScrollActions
+    # @param [TestaAppiumDriver::Locator, nil] scrollable container that will be used to determine the bounds for scrolling
+    # @param [Hash] params
+    #   acceptable params
+    #     - locator - element that should be found with scrolling actions
+    #     - deadzone - [Hash] that stores top, bottom, left and right deadzone values. If deadzone[:top] is 200 then 200px from top of the scrollable container will not be used for scrolling
+    #     - max_scrolls - [Integer] maximum number of scrolls before exception is thrown
+    #     - default_scroll_strategy - defines which scroll strategy will be used if a scroll action is valid for multiple strategies
     def initialize(scrollable, params = {})
       @scrollable = scrollable
       @locator = params[:locator]
       @deadzone = params[:deadzone]
-      @direction = params[:direction]
       @max_scrolls = params[:max_scrolls]
       @default_scroll_strategy = params[:default_scroll_strategy]
       @driver = @locator.driver
 
-      @raise = params[:raise]
 
       if @scrollable.nil?
         # if we dont have a scrollable element or if we do have it, but it is not compatible with uiautomator
@@ -35,15 +40,32 @@ module TestaAppiumDriver
     end
 
 
-    def align(with)
-      w3c_align(with)
+    def align(with, scroll_to_find)
+      w3c_align(with, scroll_to_find)
       @locator
     end
 
     # @return [Array]
-    def each(skip_scroll_to_start, &block)
-      w3c_each(skip_scroll_to_start, &block)
+    def each(&block)
+      w3c_each(nil, &block)
     end
+
+    def each_down(&block)
+      w3c_each(:down, &block)
+    end
+
+    def each_up(&block)
+      w3c_each(:up, &block)
+    end
+
+    def each_right(&block)
+      w3c_each(:right, &block)
+    end
+
+    def each_left(&block)
+      w3c_each(:left, &block)
+    end
+
 
     def resolve_strategy
       if @strategy.nil?

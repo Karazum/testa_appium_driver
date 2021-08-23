@@ -1,5 +1,5 @@
 module TestaAppiumDriver
-  module AndroidAttributeModule
+  module Attributes
 
     #noinspection RubyNilAnalysis
     def attribute(name, *args)
@@ -98,7 +98,7 @@ module TestaAppiumDriver
   end
 
   class Locator
-    include TestaAppiumDriver::AndroidAttributeModule
+    include TestaAppiumDriver::Attributes
 
 
     # element index in parent element, starts from 0

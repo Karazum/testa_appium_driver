@@ -12,6 +12,8 @@ module TestaAppiumDriver
     attr_accessor :driver
     attr_accessor :strategy
     attr_accessor :strategy_reason
+
+    # @type [Boolean] used to determine if last selector was one of siblings or children. Only in those selectors we can reliably use xpath array [instance] selector
     attr_accessor :last_selector_adjacent
     attr_accessor :can_use_id_strategy
 
@@ -68,7 +70,6 @@ module TestaAppiumDriver
       @strategy = params[:strategy]
       @strategy_reason = params[:strategy_reason]
 
-      # @type [Boolean] used to determine if last selector was one of siblings or children. Only in those selectors we can reliably use xpath array [instance] selector
       @last_selector_adjacent = false
 
       init(params, selectors, single)
@@ -78,6 +79,7 @@ module TestaAppiumDriver
     # method missing is used to fetch the element before executing additional commands like click, send_key, count
     def method_missing(method, *args, &block)
       execute.send(method, *args, &block)
+      @driver.invalidate_cache
     end
 
 
