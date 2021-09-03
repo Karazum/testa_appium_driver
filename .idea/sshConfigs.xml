@@ -5,6 +5,9 @@
       <sshConfig authType="PASSWORD" host="supertesta.com" id="ea45cb27-d516-4292-a1f7-430f02857685" port="22" customName="Supertesta.com" nameFormat="CUSTOM" username="testa">
         <option name="customName" value="Supertesta.com" />
       </sshConfig>
+      <sshConfig authType="PASSWORD" host="testa.fun" id="54640192-a130-4edc-ac3c-f3bc32df1130" port="22" customName="testa.fun" nameFormat="CUSTOM" username="root">
+        <option name="customName" value="testa.fun" />
+      </sshConfig>
     </configs>
   </component>
 </project>

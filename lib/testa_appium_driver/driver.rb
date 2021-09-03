@@ -63,42 +63,46 @@ module TestaAppiumDriver
     # Cache stores last executed find_element with given selector, strategy and from_element. If given values are the same within
     # last 5 seconds element is retrieved from cache.
     # @param [TestaAppiumDriver::Locator, TestaAppiumDriver::Driver] from_element element from which start the search
-    # @param [String] selector resolved string of a [TestaAppiumDriver::Locator] selector xpath for xpath strategy, java UiSelectors for uiautomator or id for ID strategy
     # @param [Boolean] single fetch single or multiple results
-    # @param [Symbol, nil] strategy [TestaAppiumDriver::FIND_STRATEGY_UIAUTOMATOR], [TestaAppiumDriver::FIND_STRATEGY_XPATH] or [TestaAppiumDriver::FIND_STRATEGY_ID]
-    # @param [Symbol] default_strategy if strategy is not enforced, default can be used
+    # @param [Array<Hash>] strategies_and_selectors array of usable strategies and selectors
     # @param [Boolean] skip_cache to skip checking and storing cache
     # @return [Selenium::WebDriver::Element, Array] element is returned if single is true, array otherwise
-    def execute(from_element, selector, single, strategy, default_strategy, skip_cache = false)
+    def execute(from_element, single, strategies_and_selectors, skip_cache = false)
 
       # if user wants to wait for element to exist, he can use wait_until_present
       disable_wait_for_idle
+      disable_implicit_wait
+      start_time = Time.now.to_f
+      ss_index = 0
 
 
-      # if not restricted to a strategy, use the default one
-      strategy = default_strategy if strategy.nil?
+
 
       # resolve from_element unique id, so that we can cache it properly
       from_element_id = from_element.kind_of?(TestaAppiumDriver::Locator) ? from_element.strategy_and_selector[1] : nil
 
-      puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.strategy_and_selector} => " : ""}#{strategy}: #{selector}"
       begin
-        if @cache[:selector] != selector || # cache miss, selector is different
+        ss = strategies_and_selectors[ss_index % strategies_and_selectors.count]
+        ss_index +=1
+
+        puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.strategy_and_selector} => " : ""}#{ss.keys[0]}: #{ss.values[0]}"
+
+        if @cache[:selector] != ss.values[0] || # cache miss, selector is different
             @cache[:time] + 5 <= Time.now || # cache miss, older than 5 seconds
-            @cache[:strategy] != strategy || # cache miss, different find strategy
+            @cache[:strategy] != ss.keys[0] || # cache miss, different find strategy
             @cache[:from_element_id] != from_element_id || # cache miss, search is started from different element
             skip_cache # cache is skipped
 
           if single
-            execute_result = from_element.find_element("#{strategy}": selector)
+            execute_result = from_element.find_element(ss)
           else
-            execute_result = from_element.find_elements("#{strategy}": selector)
+            execute_result = from_element.find_elements(ss)
           end
 
 
           unless skip_cache
-            @cache[:selector] = selector
-            @cache[:strategy] = strategy
+            @cache[:selector] = ss.values[0]
+            @cache[:strategy] = ss.keys[0]
             @cache[:time] = Time.now
             @cache[:from_element_id] = from_element_id
             @cache[:element] = execute_result
@@ -109,8 +113,14 @@ module TestaAppiumDriver
           puts "Using cache from #{@cache[:time].strftime("%H:%M:%S.%L")}, strategy: #{@cache[:strategy]}"
         end
       rescue => e
-        raise e
+        if start_time + @implicit_wait_ms/1000 < Time.now.to_f || ss_index < strategies_and_selectors.count
+          sleep EXISTS_WAIT if ss_index >= strategies_and_selectors.count
+          retry
+        else
+          raise e
+        end
       ensure
+        enable_implicit_wait
         enable_wait_for_idle
       end
 
@@ -121,8 +131,8 @@ module TestaAppiumDriver
     # method missing is used to forward methods to the actual appium driver
     # after the method is executed, find element cache is invalidated
     def method_missing(method, *args, &block)
-      @driver.send(method, *args, &block)
       invalidate_cache
+      @driver.send(method, *args, &block)
     end
 
     # disables implicit wait

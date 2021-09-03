@@ -25,6 +25,8 @@ module TestaAppiumDriver
     attr_accessor :default_find_strategy
     attr_accessor :default_scroll_strategy
 
+    attr_accessor :index_for_multiple
+
 
     # locator parameters are:
     #   single: true or false
@@ -38,6 +40,7 @@ module TestaAppiumDriver
     def initialize(driver, from_element, params = {})
       # @type [TestaAppiumDriver::Driver]
       @driver = driver
+      @index_for_multiple = nil
 
       params, selectors = extract_selectors_from_params(params)
       single = params[:single]
@@ -57,7 +60,8 @@ module TestaAppiumDriver
       @default_find_strategy = params[:default_find_strategy]
       @default_scroll_strategy = params[:default_scroll_strategy]
 
-      @can_use_id_strategy = selectors.keys.count == 1 && !selectors[:id].nil?
+
+      @can_use_id_strategy = is_only_id_selector?(selectors)
       if @can_use_id_strategy
         if @driver.device == :android
           @can_use_id_strategy = resolve_id(selectors[:id])
@@ -76,10 +80,23 @@ module TestaAppiumDriver
     end
 
 
+    def is_only_id_selector?(selectors)
+      # since, name and id is the same thing for iOS,
+      if @driver.device == :android
+        selectors.keys.count == 1 && !selectors[:id].nil?
+      else
+        # if it iOS we assign the name to id
+        selectors.keys.count == 2 && !selectors[:id].nil? && selectors[:id] == selectors[:name]
+      end
+    end
+
+
     # method missing is used to fetch the element before executing additional commands like click, send_key, count
     def method_missing(method, *args, &block)
-      execute.send(method, *args, &block)
+      r = execute.send(method, *args, &block)
       @driver.invalidate_cache
+      r = r[@index_for_multiple] if !@index_for_multiple.nil? && !@single
+      r
     end
 
 
@@ -99,10 +116,12 @@ module TestaAppiumDriver
 
 
 
-      strategy, selector = strategy_and_selector
 
 
-      @driver.execute(@from_element, selector, @single, strategy, @default_find_strategy, skip_cache)
+
+      r = @driver.execute(@from_element, @single, strategies_and_selectors, skip_cache)
+      r = r[@index_for_multiple] if !@index_for_multiple.nil? && !@single
+      r
     end
 
 
@@ -110,12 +129,8 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def wait_until_exists(timeout = nil)
       timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
-      start_time = Time.now.to_f
-      until exists?
-        raise "wait until exists timeout exceeded" if start_time + timeout < Time.now.to_f
-        sleep EXISTS_WAIT
-      end
-      self
+      args = {timeout: timeout}
+      _wait(:until, args)
     end
 
 
@@ -123,12 +138,19 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def wait_while_exists(timeout = nil)
       timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
-      start_time = Time.now.to_f
-      while exists?
-        raise "wait until exists timeout exceeded" if start_time + timeout < Time.now.to_f
-        sleep EXISTS_WAIT
-      end
-      self
+      args = {timeout: timeout}
+      _wait(:while, args)
+    end
+
+
+    def wait_while(timeout = nil, args = {})
+      args[:timeout] = timeout
+      _wait(:while, args)
+    end
+
+    def wait_until(timeout = nil, args = {})
+      args[:timeout] = timeout
+      _wait(:until, args)
     end
 
 
@@ -178,7 +200,7 @@ module TestaAppiumDriver
         locator.can_use_id_strategy = false
         locator
       else
-        from_element = self.execute[instance]
+        from_element = self.index_for_multiple = instance
         params = {}.merge({single: true, scrollable_locator: @scrollable_locator})
         #params[:strategy] = FIND_STRATEGY_XPATH
         #params[:strategy_reason] = "retrieved instance of a array"
@@ -215,7 +237,8 @@ module TestaAppiumDriver
           xpath: @xpath_selector,
           scrollable: @scrollable_locator.nil? ? nil : @scrollable_locator.to_s,
           scroll_orientation: @scroll_orientation,
-          resolved: strategy_and_selector
+          resolved: strategies_and_selectors,
+          index_for_multiple: @index_for_multiple
       }
     end
 
@@ -399,6 +422,51 @@ module TestaAppiumDriver
 
 
     private
+
+    def _wait(type, args)
+      interval = EXISTS_WAIT
+      interval = args[:interval] unless args[:interval].nil?
+
+      message = "wait #{type} exists timeout exceeded"
+      message = args[:message] unless args[:message].nil?
+
+      if args[:timeout].nil?
+        timeout = @driver.get_timeouts["implicit"] / 1000
+      else
+        timeout = args[:timeout]
+      end
+
+      args.delete(:message)
+      args.delete(:interval)
+      args.delete(:timeout)
+
+
+
+      start_time = Time.now.to_f
+      if type ==  :while
+        while exists? && _attributes_match(args)
+          raise message if start_time + timeout < Time.now.to_f
+          sleep interval
+        end
+      else
+        until exists? && _attributes_match(args)
+          raise message if start_time + timeout < Time.now.to_f
+          sleep interval
+        end
+      end
+      self
+    end
+
+    def _attributes_match(attributes)
+      all_match = true
+      attributes.each do |key, value|
+        unless attribute(key) == value
+          all_match = false
+          break
+        end
+      end
+      all_match
+    end
 
     #noinspection RubyNilAnalysis
     def perform_driver_method(name, *args)

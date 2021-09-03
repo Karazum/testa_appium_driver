@@ -36,15 +36,19 @@ module TestaAppiumDriver
 
 
     # resolve selector which will be used for finding element
-    def strategy_and_selector
+    def strategies_and_selectors
+      ss = []
       if @can_use_id_strategy
-        return FIND_STRATEGY_ID, @can_use_id_strategy
+        ss.push({"#{FIND_STRATEGY_ID}": @can_use_id_strategy})
       end
-      if (@strategy.nil? && @default_find_strategy == FIND_STRATEGY_UIAUTOMATOR) || @strategy == FIND_STRATEGY_UIAUTOMATOR
-        [FIND_STRATEGY_UIAUTOMATOR, ui_selector]
-      elsif (@strategy.nil? && @default_find_strategy == FIND_STRATEGY_XPATH) || @strategy == FIND_STRATEGY_XPATH
-        [FIND_STRATEGY_XPATH, @xpath_selector]
+      if @strategy.nil? || @strategy == FIND_STRATEGY_UIAUTOMATOR
+        ss.push({"#{FIND_STRATEGY_UIAUTOMATOR}": ui_selector})
       end
+
+      if @strategy.nil? || @strategy == FIND_STRATEGY_XPATH
+        ss.push({"#{FIND_STRATEGY_XPATH}": @xpath_selector})
+      end
+      ss
     end
 
 
