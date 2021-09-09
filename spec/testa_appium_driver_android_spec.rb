@@ -23,8 +23,10 @@ RSpec.describe TestaAppiumDriver do
             :udid => "228b371032057ece",
             :automationName => "uiautomator2",
             :systemPort => rand(7000..32000),
-            :noReset => true,
-            :fullReset => false,
+            #:noReset => true,
+            #:fullReset => false,
+            :noReset => false,
+            :fullReset => true,
             skipServerInstallation: true,
             :enableMultiWindows => true, # enables appium to see some otherwise "hidden" elements
             #:disableWindowAnimation => true,
@@ -54,7 +56,20 @@ RSpec.describe TestaAppiumDriver do
     # puts "Buttons #{d.buttons(id: "buttonView").count}"
     # d.button(id: "buttonView").click
     #
-    # sleep 10
+    d.element(id: "analyticsPositiveView").wait_until_exists(10).click
+    d.element(id: "startPlayingRegisterView").click
+
+
+    inputs = d.edit_texts
+
+    inputs[0].send_keys "aaaabsdfbfd"
+    inputs[1].send_keys "aaaa@aaaa.aa"
+    inputs[2].send_keys "aaaaaa"
+    d.element(id: "buttonView").click
+
+    d.text_view(text: "Județ").scroll_to.click
+
+    puts d.text_view(text: "Bihor").exists?
     d.recycler_view.wait_until_exists
     puts d.element(id: "viewPager").execute.text_view(text: "#soccer").text
     d.text_view(text: "#soccer").preceding_siblings[2]

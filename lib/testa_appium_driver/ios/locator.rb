@@ -24,11 +24,15 @@ module TestaAppiumDriver
 
 
     # @return [Array] returns 2 elements. The first is the resolved find element strategy and the second is the resolved selector
-    def strategy_and_selector
+    def strategies_and_selectors
+      ss = []
       if @can_use_id_strategy
-        return FIND_STRATEGY_NAME, @can_use_id_strategy
+        ss.push({"#{FIND_STRATEGY_NAME}": @can_use_id_strategy})
       end
-      [FIND_STRATEGY_XPATH, @xpath_selector]
+
+      ss.push({"#{FIND_STRATEGY_XPATH}": @xpath_selector}) if @strategy.nil? || @strategy == FIND_STRATEGY_XPATH
+      ss.push({"#{FIND_STRATEGY_IMAGE}": @image_selector}) if @strategy == FIND_STRATEGY_IMAGE
+      ss
     end
 
 

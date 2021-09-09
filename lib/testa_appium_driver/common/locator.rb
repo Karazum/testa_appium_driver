@@ -17,6 +17,8 @@ module TestaAppiumDriver
     attr_accessor :last_selector_adjacent
     attr_accessor :can_use_id_strategy
 
+    attr_accessor :image_selector
+
     attr_accessor :from_element
     attr_accessor :scroll_orientation
     attr_accessor :scroll_deadzone
@@ -24,6 +26,8 @@ module TestaAppiumDriver
 
     attr_accessor :default_find_strategy
     attr_accessor :default_scroll_strategy
+
+    attr_accessor :index_for_multiple
 
 
     # locator parameters are:
@@ -38,11 +42,21 @@ module TestaAppiumDriver
     def initialize(driver, from_element, params = {})
       # @type [TestaAppiumDriver::Driver]
       @driver = driver
+      @index_for_multiple = nil
+      @image_selector = nil
 
       params, selectors = extract_selectors_from_params(params)
       single = params[:single]
 
       @single = single
+
+      if selectors[:image].nil?
+        if from_element.instance_of?(TestaAppiumDriver::Locator) && !from_element.image_selector.nil?
+          raise "Cannot chain non-image selectors to image selectors"
+        end
+      else
+        handle_image_selector(selectors, params)
+      end
 
       selectors[:id] = selectors[:name] unless selectors[:name].nil?
       if from_element.instance_of?(Selenium::WebDriver::Element)
@@ -57,7 +71,8 @@ module TestaAppiumDriver
       @default_find_strategy = params[:default_find_strategy]
       @default_scroll_strategy = params[:default_scroll_strategy]
 
-      @can_use_id_strategy = selectors.keys.count == 1 && !selectors[:id].nil?
+
+      @can_use_id_strategy = is_only_id_selector?(selectors)
       if @can_use_id_strategy
         if @driver.device == :android
           @can_use_id_strategy = resolve_id(selectors[:id])
@@ -76,10 +91,24 @@ module TestaAppiumDriver
     end
 
 
+
+
+    def is_only_id_selector?(selectors)
+      # since, name and id is the same thing for iOS,
+      if @driver.device == :android
+        selectors.keys.count == 1 && !selectors[:id].nil?
+      else
+        # if it iOS we assign the name to id
+        selectors.keys.count == 2 && !selectors[:id].nil? && selectors[:id] == selectors[:name]
+      end
+    end
+
+
     # method missing is used to fetch the element before executing additional commands like click, send_key, count
     def method_missing(method, *args, &block)
       r = execute.send(method, *args, &block)
       @driver.invalidate_cache
+      r = r[@index_for_multiple] if !@index_for_multiple.nil? && !@single
       r
     end
 
@@ -87,7 +116,7 @@ module TestaAppiumDriver
     # @param [Boolean] skip_cache if true it will skip cache check and store
     # @param [Selenium::WebDriver::Element] force_cache_element, for internal use where we have already the element, and want to execute custom locator methods on it
     # @return [Selenium::WebDriver::Element, Array]
-    def execute(skip_cache: false, force_cache_element: nil)
+    def execute(skip_cache: false, force_cache_element: nil, ignore_implicit_wait: false)
       return force_cache_element unless force_cache_element.nil?
       # if we are looking for current element, then return from_element
       # for example when we have driver.element.elements[1].click
@@ -100,10 +129,12 @@ module TestaAppiumDriver
 
 
 
-      strategy, selector = strategy_and_selector
 
 
-      @driver.execute(@from_element, selector, @single, strategy, @default_find_strategy, skip_cache)
+
+      r = @driver.execute(@from_element, @single, strategies_and_selectors, skip_cache, ignore_implicit_wait)
+      r = r[@index_for_multiple] if !@index_for_multiple.nil? && !@single
+      r
     end
 
 
@@ -111,12 +142,8 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def wait_until_exists(timeout = nil)
       timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
-      start_time = Time.now.to_f
-      until exists?
-        raise "wait until exists timeout exceeded" if start_time + timeout < Time.now.to_f
-        sleep EXISTS_WAIT
-      end
-      self
+      args = {timeout: timeout}
+      _wait(:until, args)
     end
 
 
@@ -124,12 +151,19 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def wait_while_exists(timeout = nil)
       timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
-      start_time = Time.now.to_f
-      while exists?
-        raise "wait until exists timeout exceeded" if start_time + timeout < Time.now.to_f
-        sleep EXISTS_WAIT
-      end
-      self
+      args = {timeout: timeout}
+      _wait(:while, args)
+    end
+
+
+    def wait_while(timeout = nil, args = {})
+      args[:timeout] = timeout
+      _wait(:while, args)
+    end
+
+    def wait_until(timeout = nil, args = {})
+      args[:timeout] = timeout
+      _wait(:until, args)
     end
 
 
@@ -140,7 +174,7 @@ module TestaAppiumDriver
       @driver.disable_implicit_wait
       found = true
       begin
-        execute(skip_cache: true)
+        execute(skip_cache: true, ignore_implicit_wait: true)
       rescue StandardError
         found = false
       end
@@ -179,7 +213,7 @@ module TestaAppiumDriver
         locator.can_use_id_strategy = false
         locator
       else
-        from_element = self.execute[instance]
+        from_element = self.index_for_multiple = instance
         params = {}.merge({single: true, scrollable_locator: @scrollable_locator})
         #params[:strategy] = FIND_STRATEGY_XPATH
         #params[:strategy_reason] = "retrieved instance of a array"
@@ -216,7 +250,8 @@ module TestaAppiumDriver
           xpath: @xpath_selector,
           scrollable: @scrollable_locator.nil? ? nil : @scrollable_locator.to_s,
           scroll_orientation: @scroll_orientation,
-          resolved: strategy_and_selector
+          resolved: strategies_and_selectors,
+          index_for_multiple: @index_for_multiple
       }
     end
 
@@ -401,6 +436,51 @@ module TestaAppiumDriver
 
     private
 
+    def _wait(type, args)
+      interval = EXISTS_WAIT
+      interval = args[:interval] unless args[:interval].nil?
+
+      message = "wait #{type} exists timeout exceeded"
+      message = args[:message] unless args[:message].nil?
+
+      if args[:timeout].nil?
+        timeout = @driver.get_timeouts["implicit"] / 1000
+      else
+        timeout = args[:timeout]
+      end
+
+      args.delete(:message)
+      args.delete(:interval)
+      args.delete(:timeout)
+
+
+
+      start_time = Time.now.to_f
+      if type ==  :while
+        while exists? && _attributes_match(args)
+          raise message if start_time + timeout < Time.now.to_f
+          sleep interval
+        end
+      else
+        until exists? && _attributes_match(args)
+          raise message if start_time + timeout < Time.now.to_f
+          sleep interval
+        end
+      end
+      self
+    end
+
+    def _attributes_match(attributes)
+      all_match = true
+      attributes.each do |key, value|
+        unless attribute(key) == value
+          all_match = false
+          break
+        end
+      end
+      all_match
+    end
+
     #noinspection RubyNilAnalysis
     def perform_driver_method(name, *args)
       elements = execute
@@ -414,6 +494,42 @@ module TestaAppiumDriver
     def add_xpath_child_selectors(locator, selectors, single)
       locator.single = false unless single # switching from single result to multiple
       locator.xpath_selector += hash_to_xpath(@driver.device, selectors, single)
+    end
+
+
+    def handle_image_selector(selectors, params)
+      image_match_threshold = 0.4
+      image_match_threshold = params[:imageMatchThreshold] unless params[:imageMatchThreshold].nil?
+      image_match_threshold = params[:threshold] unless params[:threshold].nil?
+      fix_image_find_screenshot_dims = true
+      fix_image_find_screenshot_dims = params[:fixImageFindScreenshotDims] unless params[:fixImageFindScreenshotDims].nil?
+      fix_image_template_size = false
+      fix_image_template_size = params[:fixImageTemplateSize] unless params[:fixImageTemplateSize].nil?
+      fix_image_template_scale = false
+      fix_image_template_scale = params[:fixImageTemplateScale] unless params[:fixImageTemplateScale].nil?
+      default_image_template_scale = 1.0
+      default_image_template_scale = params[:defaultImageTemplateScale] unless params[:defaultImageTemplateScale].nil?
+      check_for_image_element_staleness = true
+      check_for_image_element_staleness = params[:checkForImageElementStaleness] unless params[:checkForImageElementStaleness].nil?
+      auto_update_image_element_position = false
+      auto_update_image_element_position = params[:autoUpdateImageElementPosition] unless params[:autoUpdateImageElementPosition].nil?
+      image_element_tap_strategy = "w3cActions"
+      image_element_tap_strategy = params[:imageElementTapStrategy] unless params[:imageElementTapStrategy].nil?
+      get_matched_image_result = false
+      get_matched_image_result = params[:getMatchedImageResult] unless params[:getMatchedImageResult].nil?
+
+      @image_selector = {
+        image: selectors[:image],
+        imageMatchThreshold: image_match_threshold,
+        fixImageFindScreenshotDims: fix_image_find_screenshot_dims,
+        fixImageTemplateSize: fix_image_template_size,
+        fixImageTemplateScale: fix_image_template_scale,
+        defaultImageTemplateScale: default_image_template_scale,
+        checkForImageElementStaleness: check_for_image_element_staleness,
+        autoUpdateImageElementPosition: auto_update_image_element_position,
+        imageElementTapStrategy: image_element_tap_strategy,
+        getMatchedImageResult: get_matched_image_result,
+      }
     end
   end
 
