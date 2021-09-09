@@ -108,7 +108,6 @@ module TestaAppiumDriver
     def method_missing(method, *args, &block)
       r = execute.send(method, *args, &block)
       @driver.invalidate_cache
-      r = r[@index_for_multiple] if !@index_for_multiple.nil? && !@single
       r
     end
 
@@ -123,8 +122,9 @@ module TestaAppiumDriver
       # elements[2] will be resolved with xpath because we are looking for multiple elements from element
       # and since we are looking for instance 2, [](instance) method will return new "empty locator"
       # we are executing click on that "empty locator" so we have to return the instance 2 of elements for the click
-      if @xpath_selector == "//*/*[1]" && @from_element.instance_of?(Selenium::WebDriver::Element)
-        return @from_element
+      if @xpath_selector == "//*[1]" && !@from_element.nil?
+        return @from_element if @from_element.instance_of?(Selenium::WebDriver::Element)
+        return @from_element.execute(skip_cache: skip_cache, force_cache_element: force_cache_element, ignore_implicit_wait: ignore_implicit_wait)
       end
 
 
@@ -170,16 +170,12 @@ module TestaAppiumDriver
     # all timeouts are disabled before check, and enabled after check
     # @return [boolean] true if it exists in the page regardless if visible or not
     def exists?
-      @driver.disable_wait_for_idle
-      @driver.disable_implicit_wait
       found = true
       begin
         execute(skip_cache: true, ignore_implicit_wait: true)
       rescue StandardError
         found = false
       end
-      @driver.enable_implicit_wait
-      @driver.enable_wait_for_idle
       found
     end
 
@@ -213,7 +209,8 @@ module TestaAppiumDriver
         locator.can_use_id_strategy = false
         locator
       else
-        from_element = self.index_for_multiple = instance
+        from_element = self.dup
+        from_element.index_for_multiple = instance
         params = {}.merge({single: true, scrollable_locator: @scrollable_locator})
         #params[:strategy] = FIND_STRATEGY_XPATH
         #params[:strategy_reason] = "retrieved instance of a array"

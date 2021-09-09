@@ -111,19 +111,6 @@ module TestaAppiumDriver
     end
 
 
-    # @param params [Hash]
-    # @return [TestaAppiumDriver::Locator] first scrollable element
-    def scrollable(params = {})
-      scroll_view(params)
-    end
-
-    # @param params [Hash]
-    # @return [TestaAppiumDriver::Locator] first scrollable element
-    def scrollables(params = {})
-      scroll_views(params)
-    end
-
-
     # @return [TestaAppiumDriver::Locator]
     def scroll_view(params = {})
       params[:type] = "XCUIElementTypeScrollView"

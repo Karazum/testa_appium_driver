@@ -258,7 +258,7 @@ module TestaAppiumDriver
 
 
 
-    def drag_to(x, y)
+    def w3c_drag_to(x, y)
       x0 = @bounds.center.x
       y0 = @bounds.center.y
       w3c_action(x0, y0, x, y, SCROLL_ACTION_TYPE_DRAG)
