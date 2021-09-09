@@ -78,8 +78,9 @@ module TestaAppiumDriver
 
     # method missing is used to fetch the element before executing additional commands like click, send_key, count
     def method_missing(method, *args, &block)
-      execute.send(method, *args, &block)
+      r = execute.send(method, *args, &block)
       @driver.invalidate_cache
+      r
     end
 
 

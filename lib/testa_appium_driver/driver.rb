@@ -121,8 +121,9 @@ module TestaAppiumDriver
     # method missing is used to forward methods to the actual appium driver
     # after the method is executed, find element cache is invalidated
     def method_missing(method, *args, &block)
-      @driver.send(method, *args, &block)
+      r = @driver.send(method, *args, &block)
       invalidate_cache
+      r
     end
 
     # disables implicit wait
