@@ -48,6 +48,10 @@ module TestaAppiumDriver
       if @strategy.nil? || @strategy == FIND_STRATEGY_XPATH
         ss.push({"#{FIND_STRATEGY_XPATH}": @xpath_selector})
       end
+
+      if @strategy == FIND_STRATEGY_IMAGE
+        ss.push({"#{FIND_STRATEGY_IMAGE}": @image_selector})
+      end
       ss
     end
 
@@ -93,6 +97,8 @@ module TestaAppiumDriver
         add_xpath_child_selectors(locator, selectors, single)
       elsif @strategy == FIND_STRATEGY_UIAUTOMATOR
         locator = add_uiautomator_child_selector(locator, selectors, single)
+      elsif @strategy == FIND_STRATEGY_IMAGE
+        locator = add_image_child_selector(locator, selectors, single)
       else
         # both paths are valid
         add_xpath_child_selectors(locator, selectors, single)
@@ -126,6 +132,11 @@ module TestaAppiumDriver
         locator.ui_selector = "#{locator.ui_selector(false)}.childSelector(#{hash_to_uiautomator(selectors, single)})"
         locator
       end
+    end
+
+    def add_image_child_selector(locator, selectors, single)
+      params = selectors.merge({single: single, scrollable_locator: locator.scrollable_locator})
+      Locator.new(@driver, self, params)
     end
   end
 end

@@ -17,6 +17,8 @@ module TestaAppiumDriver
     attr_accessor :last_selector_adjacent
     attr_accessor :can_use_id_strategy
 
+    attr_accessor :image_selector
+
     attr_accessor :from_element
     attr_accessor :scroll_orientation
     attr_accessor :scroll_deadzone
@@ -41,11 +43,20 @@ module TestaAppiumDriver
       # @type [TestaAppiumDriver::Driver]
       @driver = driver
       @index_for_multiple = nil
+      @image_selector = nil
 
       params, selectors = extract_selectors_from_params(params)
       single = params[:single]
 
       @single = single
+
+      if selectors[:image].nil?
+        if from_element.instance_of?(TestaAppiumDriver::Locator) && !from_element.image_selector.nil?
+          raise "Cannot chain non-image selectors to image selectors"
+        end
+      else
+        handle_image_selector(selectors, params)
+      end
 
       selectors[:id] = selectors[:name] unless selectors[:name].nil?
       if from_element.instance_of?(Selenium::WebDriver::Element)
@@ -80,6 +91,8 @@ module TestaAppiumDriver
     end
 
 
+
+
     def is_only_id_selector?(selectors)
       # since, name and id is the same thing for iOS,
       if @driver.device == :android
@@ -103,7 +116,7 @@ module TestaAppiumDriver
     # @param [Boolean] skip_cache if true it will skip cache check and store
     # @param [Selenium::WebDriver::Element] force_cache_element, for internal use where we have already the element, and want to execute custom locator methods on it
     # @return [Selenium::WebDriver::Element, Array]
-    def execute(skip_cache: false, force_cache_element: nil)
+    def execute(skip_cache: false, force_cache_element: nil, ignore_implicit_wait: false)
       return force_cache_element unless force_cache_element.nil?
       # if we are looking for current element, then return from_element
       # for example when we have driver.element.elements[1].click
@@ -119,7 +132,7 @@ module TestaAppiumDriver
 
 
 
-      r = @driver.execute(@from_element, @single, strategies_and_selectors, skip_cache)
+      r = @driver.execute(@from_element, @single, strategies_and_selectors, skip_cache, ignore_implicit_wait)
       r = r[@index_for_multiple] if !@index_for_multiple.nil? && !@single
       r
     end
@@ -161,7 +174,7 @@ module TestaAppiumDriver
       @driver.disable_implicit_wait
       found = true
       begin
-        execute(skip_cache: true)
+        execute(skip_cache: true, ignore_implicit_wait: true)
       rescue StandardError
         found = false
       end
@@ -481,6 +494,42 @@ module TestaAppiumDriver
     def add_xpath_child_selectors(locator, selectors, single)
       locator.single = false unless single # switching from single result to multiple
       locator.xpath_selector += hash_to_xpath(@driver.device, selectors, single)
+    end
+
+
+    def handle_image_selector(selectors, params)
+      image_match_threshold = 0.4
+      image_match_threshold = params[:imageMatchThreshold] unless params[:imageMatchThreshold].nil?
+      image_match_threshold = params[:threshold] unless params[:threshold].nil?
+      fix_image_find_screenshot_dims = true
+      fix_image_find_screenshot_dims = params[:fixImageFindScreenshotDims] unless params[:fixImageFindScreenshotDims].nil?
+      fix_image_template_size = false
+      fix_image_template_size = params[:fixImageTemplateSize] unless params[:fixImageTemplateSize].nil?
+      fix_image_template_scale = false
+      fix_image_template_scale = params[:fixImageTemplateScale] unless params[:fixImageTemplateScale].nil?
+      default_image_template_scale = 1.0
+      default_image_template_scale = params[:defaultImageTemplateScale] unless params[:defaultImageTemplateScale].nil?
+      check_for_image_element_staleness = true
+      check_for_image_element_staleness = params[:checkForImageElementStaleness] unless params[:checkForImageElementStaleness].nil?
+      auto_update_image_element_position = false
+      auto_update_image_element_position = params[:autoUpdateImageElementPosition] unless params[:autoUpdateImageElementPosition].nil?
+      image_element_tap_strategy = "w3cActions"
+      image_element_tap_strategy = params[:imageElementTapStrategy] unless params[:imageElementTapStrategy].nil?
+      get_matched_image_result = false
+      get_matched_image_result = params[:getMatchedImageResult] unless params[:getMatchedImageResult].nil?
+
+      @image_selector = {
+        image: selectors[:image],
+        imageMatchThreshold: image_match_threshold,
+        fixImageFindScreenshotDims: fix_image_find_screenshot_dims,
+        fixImageTemplateSize: fix_image_template_size,
+        fixImageTemplateScale: fix_image_template_scale,
+        defaultImageTemplateScale: default_image_template_scale,
+        checkForImageElementStaleness: check_for_image_element_staleness,
+        autoUpdateImageElementPosition: auto_update_image_element_position,
+        imageElementTapStrategy: image_element_tap_strategy,
+        getMatchedImageResult: get_matched_image_result,
+      }
     end
   end
 

@@ -24,6 +24,9 @@ module TestaAppiumDriver
     # @param selectors [Hash]
     # @return [TestaAppiumDriver::Locator] first element
     def element(selectors = {})
+      unless selectors[:image].nil?
+        selectors[:strategy] = FIND_STRATEGY_IMAGE
+      end
       add_selector(selectors)
     end
 
@@ -31,6 +34,9 @@ module TestaAppiumDriver
     # @param params [Hash]
     # @return [TestaAppiumDriver::Locator] all elements that match given selectors
     def elements(params = {})
+      unless params[:image].nil?
+        params[:strategy] = FIND_STRATEGY_IMAGE
+      end
       params[:single] = false
       add_selector(params)
     end
@@ -398,6 +404,23 @@ module TestaAppiumDriver
       params[:single] = false
       add_selector(params)
     end
+
+
+    # first androidx.cardview.widget.CardView element that match given selectors
+    # @return [TestaAppiumDriver::Locator]
+    def card_view(params = {})
+      params[:class] = "androidx.cardview.widget.CardView"
+      add_selector(params)
+    end
+
+    # all androidx.cardview.widget.CardView elements that match given selectors
+    # @return [TestaAppiumDriver::Locator]
+    def card_views(params = {})
+      params[:class] = "androidx.cardview.widget.CardView"
+      params[:single] = false
+      add_selector(params)
+    end
+
 
   end
 end

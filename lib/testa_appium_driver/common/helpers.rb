@@ -205,6 +205,8 @@ module TestaAppiumDriver
           :visible,
           :name,
           :value,
+
+          :image
       ].include?(key) }
       params = Hash[params.to_a - selectors.to_a]
 

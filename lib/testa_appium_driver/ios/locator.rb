@@ -29,7 +29,9 @@ module TestaAppiumDriver
       if @can_use_id_strategy
         ss.push({"#{FIND_STRATEGY_NAME}": @can_use_id_strategy})
       end
-      ss.push({"#{FIND_STRATEGY_XPATH}": @xpath_selector})
+
+      ss.push({"#{FIND_STRATEGY_XPATH}": @xpath_selector}) if @strategy.nil? || @strategy == FIND_STRATEGY_XPATH
+      ss.push({"#{FIND_STRATEGY_IMAGE}": @image_selector}) if @strategy == FIND_STRATEGY_IMAGE
       ss
     end
 
