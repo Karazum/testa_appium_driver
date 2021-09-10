@@ -9,6 +9,13 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="e1897dc5-c089-49e3-802d-1c69de9874a7" name="testa.fun" url="http://something">
+        <fileTransfer rootFolder="/ruby_apps" accessType="SFTP" host="testa.fun" port="22" sshConfigId="54640192-a130-4edc-ac3c-f3bc32df1130" sshConfig="testa.fun">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>
