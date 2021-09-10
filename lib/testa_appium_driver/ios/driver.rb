@@ -7,6 +7,19 @@ module TestaAppiumDriver
     include TypeSelectors
 
 
+
+    # @param params [Hash]
+    # @return [TestaAppiumDriver::Locator] first scrollable element
+    def scrollable(params = {})
+      scroll_view(params)
+    end
+
+    # @param params [Hash]
+    # @return [TestaAppiumDriver::Locator] first scrollable element
+    def scrollables(params = {})
+      scroll_views(params)
+    end
+
     private
     def handle_testa_opts
       if @testa_opts[:default_find_strategy].nil?

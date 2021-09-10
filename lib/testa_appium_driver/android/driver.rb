@@ -24,6 +24,23 @@ module TestaAppiumDriver
     end
 
 
+    def scrollable
+      locator = Locator.new(self, self, {single: true})
+      locator.xpath_selector = "//androidx.recyclerview.widget.RecyclerView|//android.widget.ScrollView|//android.widget.ListView|//android.widget.HorizontalScrollView"
+      locator.ui_selector = "new UiSelector().scrollable(true).instance(0)"
+      locator
+    end
+
+
+    def scrollables
+      locator = Locator.new(self, self, {single: false})
+      locator.xpath_selector = "//androidx.recyclerview.widget.RecyclerView|//android.widget.ScrollView|//android.widget.ListView|//android.widget.HorizontalScrollView"
+      locator.ui_selector = "new UiSelector().scrollable(true)"
+      locator
+    end
+
+
+
     private
     def handle_testa_opts
       if @testa_opts[:default_find_strategy].nil?

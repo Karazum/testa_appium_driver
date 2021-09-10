@@ -79,13 +79,13 @@ module TestaAppiumDriver
 
 
       # resolve from_element unique id, so that we can cache it properly
-      from_element_id = from_element.kind_of?(TestaAppiumDriver::Locator) ? from_element.strategy_and_selector[1] : nil
+      from_element_id = from_element.instance_of?(TestaAppiumDriver::Locator) ? from_element.strategies_and_selectors : nil
 
       begin
         ss = strategies_and_selectors[ss_index % strategies_and_selectors.count]
         ss_index +=1
 
-        puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.strategy_and_selector} => " : ""}#{ss.keys[0]}: #{ss.values[0]}"
+        puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.strategies_and_selectors} => " : ""}#{ss.keys[0]}: #{ss.values[0]}"
 
         if @cache[:selector] != ss.values[0] || # cache miss, selector is different
             @cache[:time] + 5 <= Time.now || # cache miss, older than 5 seconds
@@ -142,21 +142,25 @@ module TestaAppiumDriver
     # method missing is used to forward methods to the actual appium driver
     # after the method is executed, find element cache is invalidated
     def method_missing(method, *args, &block)
+      r = @driver.send(method, *args, &block)
       invalidate_cache
-      @driver.send(method, *args, &block)
+      r
     end
 
     # disables implicit wait
     def disable_implicit_wait
       @implicit_wait_ms = @driver.get_timeouts["implicit"]
+      @implicit_wait_uiautomator_ms = @driver.get_settings["waitForSelectorTimeout"]
       @driver.manage.timeouts.implicit_wait = 0
+      @driver.update_settings({waitForSelectorTimeout: 0})
     end
 
     # enables implicit wait, can be called only after disabling implicit wait
     def enable_implicit_wait
-      raise "Implicit wait is not disabled" if @implicit_wait_ms.nil?
+      raise "Implicit wait is not disabled" if @implicit_wait_ms.nil? ||@implicit_wait_uiautomator_ms.nil?
       # get_timeouts always returns in milliseconds, but we should set in seconds
       @driver.manage.timeouts.implicit_wait = @implicit_wait_ms / 1000
+      @driver.update_settings({waitForSelectorTimeout: @implicit_wait_uiautomator_ms})
     end
 
     # disables wait for idle, only executed for android devices
@@ -227,6 +231,7 @@ module TestaAppiumDriver
     def long_press_keycode(code)
       @driver.long_press_keycode(code)
     end
+
 
 
 

@@ -42,24 +42,6 @@ module TestaAppiumDriver
     end
 
 
-    # first element that has scrollable: true
-    # @param selectors [Hash]
-    # @return [TestaAppiumDriver::Locator] first scrollable element
-    def scrollable(selectors = {})
-      selectors[:scrollable] = true
-      add_selector(selectors)
-    end
-
-    # all elements that have scrollable: true
-    # @param params [Hash]
-    # @return [TestaAppiumDriver::Locator] first scrollable element
-    def scrollables(params = {})
-      params[:scrollable] = true
-      params[:single] = false
-      add_selector(params)
-    end
-
-
     # first android.widget.ImageView element that match given selectors
     # @return [TestaAppiumDriver::Locator]
     def image_view(params = {})

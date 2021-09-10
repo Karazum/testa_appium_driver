@@ -120,7 +120,9 @@ module TestaAppiumDriver
         command = "#{ command }[@focused=\"#{ hash[:focused] }\"]" unless hash[:focused].nil?
         command = "#{ command }[@index=\"#{ hash[:index] }\"]" unless hash[:index].nil?
         command = "#{ command }[@selected=\"#{ hash[:selected] }\"]" unless hash[:selected].nil?
-        command = "#{ command }[@scrollable=\"#{ hash[:scrollable] }\"]" unless hash[:scrollable].nil?
+
+        # it seems like you cannot query by scrollable
+        # command = "#{ command }[@scrollable=\"#{ hash[:scrollable] }\"]" unless hash[:scrollable].nil?
       else
 
         hash[:type] = hash[:class] unless hash[:class].nil?

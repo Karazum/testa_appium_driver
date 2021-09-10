@@ -250,6 +250,22 @@ module TestaAppiumDriver
       _fling(:right, _process_deadzone(top, bottom, right, left))
     end
 
+    def drag_up_by(amount)
+      drag_by(amount, direction: :top)
+    end
+
+    def drag_down_by(amount)
+      drag_by(amount, direction: :bottom)
+    end
+
+    def drag_left_by(amount)
+      drag_by(amount, direction: :left)
+    end
+
+    def drag_right_by(amount)
+      drag_by(amount, direction: :right)
+    end
+
 
     # @param [TestaAppiumDriver::Locator, Hash, Selenium::WebDriver::Element, String] to
     #noinspection RubyYardParamTypeMatch,RubyScope
