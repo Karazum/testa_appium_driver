@@ -157,7 +157,7 @@ module TestaAppiumDriver
 
     # enables implicit wait, can be called only after disabling implicit wait
     def enable_implicit_wait
-      raise "Implicit wait is not disabled" if @implicit_wait_ms.nil? ||@implicit_wait_uiautomator_ms.nil?
+      raise "Implicit wait is not disabled" if @implicit_wait_ms.nil? || (@implicit_wait_uiautomator_ms.nil? && @device == :android)
       # get_timeouts always returns in milliseconds, but we should set in seconds
       @driver.manage.timeouts.implicit_wait = @implicit_wait_ms / 1000
       @driver.update_settings({waitForSelectorTimeout: @implicit_wait_uiautomator_ms})
