@@ -403,6 +403,36 @@ module TestaAppiumDriver
       add_selector(params)
     end
 
+    # first android.widget.Switch element that match given selectors
+    # @return [TestaAppiumDriver::Locator]
+    def switch(params = {})
+      params[:class] = "android.widget.Switch"
+      add_selector(params)
+    end
+
+    # all android.widget.Switch elements that match given selectors
+    # @return [TestaAppiumDriver::Locator]
+    def switches(params = {})
+      params[:class] = "android.widget.Switch"
+      params[:single] = false
+      add_selector(params)
+    end
+
+
+    # first android.webkit.WebView element that match given selectors
+    # @return [TestaAppiumDriver::Locator]
+    def web_view(params = {})
+      params[:class] = "android.webkit.WebView"
+      add_selector(params)
+    end
+
+    # all android.webkit.WebView elements that match given selectors
+    # @return [TestaAppiumDriver::Locator]
+    def web_views(params = {})
+      params[:class] = "android.webkit.WebView"
+      params[:single] = false
+      add_selector(params)
+    end
 
   end
 end

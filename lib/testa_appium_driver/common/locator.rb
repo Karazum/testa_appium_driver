@@ -138,6 +138,25 @@ module TestaAppiumDriver
       r
     end
 
+    def when_exists(timeout = nil, &block)
+      timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
+      found = false
+      begin
+        wait_until_exists(timeout)
+        found = true
+      rescue
+        #ignored
+      end
+      if found
+        if block_given? # block is given
+          block.call(self) # use call to execute the block
+        else # the value of block_argument becomes nil if you didn't give a block
+          # block was not given
+        end
+      end
+      self
+    end
+
 
     # @param [Integer] timeout in seconds
     # @return [TestaAppiumDriver::Locator]
