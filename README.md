@@ -202,12 +202,18 @@ siblings selector can only be used with xpath strategy.
 - search_views
 - spinner
 - spinners
+- switch
+- switches
 - toast
 - toasts
 - toolbar
 - toolbars
 - text_view
 - text_views
+- web_view
+- web_views
+- card_view
+- card_views
 
 Adjacent selectors
 - from_parent
@@ -323,11 +329,15 @@ Type Selector arguments
 
 # Scroll actions
 - each
-- align!
-- align_top!
-- align_bottom!
-- align_left!
-- align_right!
+- each_down
+- each_up
+- each_left
+- each_right
+- align! (if does not exist, will scroll to find)
+- align_top! (if does not exist, will scroll to find)
+- align_bottom! (if does not exist, will scroll to find)
+- align_left! (if does not exist, will scroll to find)
+- align_right! (if does not exist, will scroll to find)
 - align
 - align_top
 - align_bottom
@@ -355,6 +365,9 @@ Type Selector arguments
 - as_scrollable
 - wait_until_exists
 - wait_while_exists
+- wait_until
+- wait_while
+- when_exists
 - exists?
 - long_tap
 

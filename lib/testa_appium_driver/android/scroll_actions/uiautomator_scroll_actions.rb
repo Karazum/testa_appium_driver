@@ -4,8 +4,6 @@ module TestaAppiumDriver
     private
 
     def uiautomator_scroll_to_start_or_end(type)
-      @driver.disable_wait_for_idle
-      @driver.disable_implicit_wait
 
       scrollable_selector = @scrollable.ui_selector(false)
       orientation = @scrollable.scroll_orientation == :vertical ? ".setAsVerticalList()" : ".setAsHorizontalList()"
@@ -19,17 +17,11 @@ module TestaAppiumDriver
       end
 
 
-      @driver.enable_implicit_wait
-      @driver.enable_wait_for_idle
     end
 
 
     def uiautomator_scroll_to
       raise "UiAutomator scroll cannot work with specified direction" unless @direction.nil?
-
-
-      @driver.disable_wait_for_idle
-      @driver.disable_implicit_wait
 
       scrollable_selector = @scrollable.ui_selector(false)
       element_selector = @locator.ui_selector(false)
@@ -41,15 +33,11 @@ module TestaAppiumDriver
       rescue
         # Ignored
       ensure
-        @driver.enable_implicit_wait
-        @driver.enable_wait_for_idle
       end
     end
 
 
     def uiautomator_page_or_fling(type, direction)
-      @driver.disable_wait_for_idle
-      @driver.disable_implicit_wait
 
       scrollable_selector = @scrollable.ui_selector(false)
       orientation = direction == :up || direction == :down ? ".setAsVerticalList()" : ".setAsHorizontalList()"
@@ -67,8 +55,6 @@ module TestaAppiumDriver
       rescue
         # Ignored
       end
-      @driver.enable_implicit_wait
-      @driver.enable_wait_for_idle
     end
 
 

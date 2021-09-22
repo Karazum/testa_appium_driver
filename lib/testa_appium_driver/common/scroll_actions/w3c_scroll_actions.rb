@@ -6,8 +6,6 @@ module TestaAppiumDriver
     def w3c_each(direction, &block)
       elements = []
       begin
-        @driver.disable_wait_for_idle
-        @driver.disable_implicit_wait
         default_deadzone!
 
         iterations = 0
@@ -38,15 +36,12 @@ module TestaAppiumDriver
         end
       rescue => e
         raise e
-      ensure
-        @driver.enable_implicit_wait
-        @driver.enable_wait_for_idle
+
       end
       elements
     end
 
     def w3c_align(with, scroll_to_find)
-      @driver.disable_wait_for_idle
       default_deadzone!
 
 
@@ -54,20 +49,6 @@ module TestaAppiumDriver
       @locator.scroll_to if scroll_to_find
 
       element = @locator.execute
-      @driver.disable_implicit_wait
-
-      case with
-      when :top
-        page_down if is_aligned?(with, element)
-      when :bottom
-        page_up if is_aligned?(with, element)
-      when :right
-        page_right if is_aligned?(with, element)
-      when :left
-        page_left if is_aligned?(with, element)
-      else
-        raise "Unsupported align with option: #{with}"
-      end
 
       timeout = 0
       until is_aligned?(with, element) || timeout == 3
@@ -75,8 +56,6 @@ module TestaAppiumDriver
         timeout += 1
       end
 
-      @driver.enable_implicit_wait
-      @driver.enable_wait_for_idle
     end
 
 
@@ -150,8 +129,6 @@ module TestaAppiumDriver
     end
 
     def w3c_scroll_to_start_or_end(type)
-      @driver.disable_wait_for_idle
-      @driver.disable_implicit_wait
       default_deadzone!
 
       @previous_elements = nil
@@ -179,15 +156,10 @@ module TestaAppiumDriver
 
       # reset the flag for end of scroll elements
       @previous_elements = nil
-
-      @driver.enable_implicit_wait
-      @driver.enable_wait_for_idle
     end
 
 
     def w3c_page_or_fling(type, direction)
-      @driver.disable_wait_for_idle
-      @driver.disable_implicit_wait
       default_deadzone!
 
       if direction == :down || direction == :up
@@ -216,8 +188,6 @@ module TestaAppiumDriver
 
       w3c_action(x0, y0, x1, y1, type)
 
-      @driver.enable_implicit_wait
-      @driver.enable_wait_for_idle
     end
 
 

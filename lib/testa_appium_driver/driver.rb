@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# require 'em/pure_ruby'
-# require 'appium_lib_core'
+require 'em/pure_ruby'
+require 'appium_lib_core'
 
 require_relative 'common/bounds'
 require_relative 'common/exceptions/strategy_mix_exception'
@@ -29,6 +29,8 @@ module TestaAppiumDriver
     def initialize(opts = {})
       @testa_opts = opts[:testa_appium_driver] || {}
 
+      @wait_for_idle_disabled = false
+      @implicit_wait_disabled = false
 
       core = Appium::Core.for(opts)
       extend_for(core.device, core.automation_name)
@@ -149,32 +151,39 @@ module TestaAppiumDriver
 
     # disables implicit wait
     def disable_implicit_wait
-      @implicit_wait_ms = @driver.get_timeouts["implicit"]
-      @implicit_wait_uiautomator_ms = @driver.get_settings["waitForSelectorTimeout"]
-      @driver.manage.timeouts.implicit_wait = 0
-      @driver.update_settings({waitForSelectorTimeout: 0})
+      unless @implicit_wait_disabled
+        @implicit_wait_ms = @driver.get_timeouts["implicit"]
+        @implicit_wait_uiautomator_ms = @driver.get_settings["waitForSelectorTimeout"]
+        @driver.manage.timeouts.implicit_wait = 0
+        @driver.update_settings({waitForSelectorTimeout: 0})
+        @implicit_wait_disabled = true
+      end
     end
 
     # enables implicit wait, can be called only after disabling implicit wait
     def enable_implicit_wait
-      raise "Implicit wait is not disabled" if @implicit_wait_ms.nil? || (@implicit_wait_uiautomator_ms.nil? && @device == :android)
+      raise "Implicit wait is not disabled" unless @implicit_wait_disabled
       # get_timeouts always returns in milliseconds, but we should set in seconds
       @driver.manage.timeouts.implicit_wait = @implicit_wait_ms / 1000
       @driver.update_settings({waitForSelectorTimeout: @implicit_wait_uiautomator_ms})
+      @implicit_wait_disabled = false
     end
 
     # disables wait for idle, only executed for android devices
     def disable_wait_for_idle
-      if @device == :android
-        @wait_for_idle_timeout = @driver.settings.get["waitForIdleTimeout"]
-        @driver.update_settings({waitForIdleTimeout: 0})
+      unless @wait_for_idle_disabled
+        if @device == :android
+          @wait_for_idle_timeout = @driver.settings.get["waitForIdleTimeout"]
+          @driver.update_settings({waitForIdleTimeout: 0})
+        end
+        @wait_for_idle_disabled = true
       end
     end
 
     # enables wait for idle, only executed for android devices
     def enable_wait_for_idle
       if @device == :android
-        raise "Wait for idle is not disabled" if @wait_for_idle_timeout.nil?
+        raise "Wait for idle is not disabled" unless @wait_for_idle_disabled
         @driver.update_settings({waitForIdleTimeout: @wait_for_idle_timeout})
       end
     end

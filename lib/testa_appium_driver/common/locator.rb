@@ -122,7 +122,7 @@ module TestaAppiumDriver
       # elements[2] will be resolved with xpath because we are looking for multiple elements from element
       # and since we are looking for instance 2, [](instance) method will return new "empty locator"
       # we are executing click on that "empty locator" so we have to return the instance 2 of elements for the click
-      if @xpath_selector == "//*[1]" && !@from_element.nil?
+      if @xpath_selector == "//*[1]" && !@from_element.nil? && @image_selector.nil?
         return @from_element if @from_element.instance_of?(Selenium::WebDriver::Element)
         return @from_element.execute(skip_cache: skip_cache, force_cache_element: force_cache_element, ignore_implicit_wait: ignore_implicit_wait) if @from_element.instance_of?(TestaAppiumDriver::Locator)
         return @from_element
