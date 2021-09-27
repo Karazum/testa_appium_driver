@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'em/pure_ruby'
-require 'appium_lib_core'
+#require 'em/pure_ruby'
+#require 'appium_lib_core'
 
 require_relative 'common/bounds'
 require_relative 'common/exceptions/strategy_mix_exception'
@@ -162,7 +162,9 @@ module TestaAppiumDriver
 
     # enables implicit wait, can be called only after disabling implicit wait
     def enable_implicit_wait
-      raise "Implicit wait is not disabled" unless @implicit_wait_disabled
+      unless @implicit_wait_disabled && @implicit_wait_ms.nil?
+        @implicit_wait_ms = 10000
+      end
       # get_timeouts always returns in milliseconds, but we should set in seconds
       @driver.manage.timeouts.implicit_wait = @implicit_wait_ms / 1000
       @driver.update_settings({waitForSelectorTimeout: @implicit_wait_uiautomator_ms})
@@ -183,7 +185,9 @@ module TestaAppiumDriver
     # enables wait for idle, only executed for android devices
     def enable_wait_for_idle
       if @device == :android
-        raise "Wait for idle is not disabled" unless @wait_for_idle_disabled
+        unless @wait_for_idle_disabled && @wait_for_idle_timeout.nil?
+          @wait_for_idle_timeout = 10000
+        end
         @driver.update_settings({waitForIdleTimeout: @wait_for_idle_timeout})
       end
     end
@@ -231,6 +235,30 @@ module TestaAppiumDriver
 
     def hide_keyboard
       @driver.hide_keyboard
+    end
+
+    def tab_key
+      @driver.press_keycode(61)
+    end
+
+    def dpad_up_key
+      @driver.press_keycode(19)
+    end
+
+    def dpad_down_key
+      @driver.press_keycode(20)
+    end
+
+    def dpad_right_key
+      @driver.press_keycode(22)
+    end
+
+    def dpad_left_key
+      @driver.press_keycode(23)
+    end
+
+    def enter_key
+      @driver.press_keycode(66)
     end
 
     def press_keycode(code)
