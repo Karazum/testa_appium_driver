@@ -12,7 +12,7 @@
       <paths name="testa.fun">
         <serverdata>
           <mappings>
-            <mapping deploy="/testa_docker/path_data/testa_appium_driver" local="$PROJECT_DIR$" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
