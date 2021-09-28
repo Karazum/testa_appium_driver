@@ -221,7 +221,7 @@ module TestaAppiumDriver
 
     def [](instance)
       raise "Cannot add index selector to non-Array" if @single
-      if ((@strategy.nil? && !@last_selector_adjacent) || @strategy == FIND_STRATEGY_UIAUTOMATOR) && instance >= 0
+      if ((@strategy.nil? && !@last_selector_adjacent && @driver.device == :android) || @strategy == FIND_STRATEGY_UIAUTOMATOR) && instance >= 0
         locator = self.dup
         locator.strategy = FIND_STRATEGY_UIAUTOMATOR
         locator.ui_selector = "#{@ui_selector}.instance(#{instance})"

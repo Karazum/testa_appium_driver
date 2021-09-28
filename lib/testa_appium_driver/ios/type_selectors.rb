@@ -5,10 +5,15 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def add_selector(*args, &block)
       # if class selector is executed from driver, create new locator instance
-      if self.kind_of?(TestaAppiumDriver::Driver) || self.kind_of(Selenium::WebDriver::Element)
+      if self.kind_of?(TestaAppiumDriver::Driver) || self.instance_of?(Selenium::WebDriver::Element)
         args.last[:default_find_strategy] = @default_find_strategy
         args.last[:default_scroll_strategy] = @default_scroll_strategy
-        Locator.new(self, self, *args)
+        if self.instance_of?(Selenium::WebDriver::Element)
+          driver = self.get_driver
+        else
+          driver = self
+        end
+        Locator.new(driver, self, *args)
       else
         # class selector is executed from locator, just add child selector criteria
         self.add_child_selector(*args)
@@ -147,6 +152,35 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def cells(params = {})
       params[:type] = "XCUIElementTypeCell"
+      params[:single] = false
+      add_selector(params)
+    end
+
+
+
+    # @return [TestaAppiumDriver::Locator]
+    def text_field(params = {})
+      params[:type] = "XCUIElementTypeTextField"
+      add_selector(params)
+    end
+
+    # @return [TestaAppiumDriver::Locator]
+    def text_fields(params = {})
+      params[:type] = "XCUIElementTypeTextField"
+      params[:single] = false
+      add_selector(params)
+    end
+
+
+    # @return [TestaAppiumDriver::Locator]
+    def secure_text_field(params = {})
+      params[:type] = "XCUIElementTypeSecureTextField"
+      add_selector(params)
+    end
+
+    # @return [TestaAppiumDriver::Locator]
+    def secure_text_fields(params = {})
+      params[:type] = "XCUIElementTypeSecureTextField"
       params[:single] = false
       add_selector(params)
     end
