@@ -228,6 +228,13 @@ module TestaAppiumDriver
         locator.single = true
         locator.can_use_id_strategy = false
         locator
+      elsif (@driver.device == :ios && !@last_selector_adjacent && @strategy.nil?) || @strategy == FIND_STRATEGY_CLASS_CHAIN
+        locator = self.dup
+        locator.strategy = FIND_STRATEGY_CLASS_CHAIN
+        locator.class_chain_selector += "[#{instance + 1}]"
+        locator.single = true
+        locator.can_use_id_strategy = false
+        locator
       else
         from_element = self.dup
         from_element.index_for_multiple = instance
@@ -306,7 +313,15 @@ module TestaAppiumDriver
     end
 
     def click
-      perform_driver_method(:click)
+      if @driver.device == :android
+        perform_driver_method(:click)
+      else
+        # on ios, if element is not visible, first click will scroll to it
+        # then on second click actually perform the click
+        visible = visible?
+        perform_driver_method(:click)
+        perform_driver_method(:click) unless visible rescue nil
+      end
     end
 
     def send_key(*args)
@@ -336,15 +351,20 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def children
       raise "Cannot add children selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "children") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "children") if @strategy != FIND_STRATEGY_XPATH &&  @strategy != FIND_STRATEGY_CLASS_CHAIN && !@strategy.nil?
 
       locator = self.dup
-      locator.strategy = FIND_STRATEGY_XPATH
       locator.strategy_reason = "children"
       locator.xpath_selector += "/*"
       locator.single = false
       locator.last_selector_adjacent = true
       locator.can_use_id_strategy = false
+
+      if @driver.device == :android
+        locator.strategy = FIND_STRATEGY_XPATH
+      else
+        locator.class_chain_selector += "/*"
+      end
       locator
     end
 
@@ -353,14 +373,20 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def child
       raise "Cannot add children selector to array" unless @single
-      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "child") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
+      raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "child") if @strategy != FIND_STRATEGY_XPATH && @strategy != FIND_STRATEGY_CLASS_CHAIN && !@strategy.nil?
 
       locator = self.dup
-      locator.strategy = FIND_STRATEGY_XPATH
+
       locator.strategy_reason = "child"
       locator.xpath_selector += "/*[1]"
       locator.single = true
       locator.can_use_id_strategy = false
+
+      if @driver.device == :android
+        locator.strategy = FIND_STRATEGY_XPATH
+      else
+        locator.class_chain_selector += "/*[1]"
+      end
       locator
     end
 

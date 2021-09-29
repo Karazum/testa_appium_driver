@@ -7,6 +7,7 @@ module TestaAppiumDriver
   FIND_STRATEGY_ID = :id
   FIND_STRATEGY_NAME = :name
   FIND_STRATEGY_IMAGE = :image
+  FIND_STRATEGY_CLASS_CHAIN = :class_chain
 
   SCROLL_STRATEGY_UIAUTOMATOR = :uiautomator
   SCROLL_STRATEGY_W3C = :w3c

@@ -157,6 +157,33 @@ module TestaAppiumDriver
       command
     end
 
+
+    def hash_to_class_chain(hash, single = true)
+      command = "**/"
+
+      hash[:type] = hash[:class] unless hash[:class].nil?
+      hash[:label] = hash[:text] unless hash[:text].nil?
+      hash[:name] = hash[:id] unless hash[:id].nil?
+      if hash[:type] && hash[:type].kind_of?(String)
+        command = "#{ command }#{hash[:type] }"
+      else
+        command = "#{command}*"
+      end
+
+      command = "#{ command }[`enabled == #{ hash[:enabled] }`]" unless hash[:enabled].nil?
+      command = "#{ command }[`label == \"#{ %(#{hash[:label] }) }\"`]" if hash[:label] && hash[:label].kind_of?(String)
+      command = "#{ command }[`label CONTAINS \"#{ %(#{hash[:label].source }) }\"`]" if hash[:label] && hash[:label].kind_of?(Regexp)
+      command = "#{ command }[`name == \"#{ %(#{hash[:name] }) }\"`]" if hash[:name] && hash[:name].kind_of?(String)
+      command = "#{ command }[`name CONTAINS \"#{ %(#{hash[:name].source }) }\"`]" if hash[:name] && hash[:name].kind_of?(Regexp)
+      command = "#{ command }[`value == \"#{ %(#{hash[:value] }) }\"`]" if hash[:value] && hash[:value].kind_of?(String)
+      command = "#{ command }[`value CONTAINS \"#{ %(#{hash[:value].source }) }\"`]" if hash[:value] && hash[:value].kind_of?(Regexp)
+      command = "#{ command }[`visible == #{ hash[:visible] }`]" unless hash[:visible].nil?
+
+      command += "[1]" if single
+
+      command
+    end
+
     # check if selectors are for a scrollable element
     # @param [Boolean] single should the command return first instance or all of matched elements
     # @param [Hash] selectors for fetching elements
