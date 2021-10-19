@@ -110,7 +110,7 @@ module TestaAppiumDriver
       children = self.dup.parent.children.execute
       index = children.index(this)
       raise "Index not found" if index.nil?
-      index
+      index.to_i
     end
   end
 end
