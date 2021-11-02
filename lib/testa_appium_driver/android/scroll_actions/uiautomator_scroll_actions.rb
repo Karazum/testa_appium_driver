@@ -6,6 +6,7 @@ module TestaAppiumDriver
     def uiautomator_scroll_to_start_or_end(type)
 
       scrollable_selector = @scrollable.ui_selector(false)
+      puts @scrollable.bounds
       orientation = @scrollable.scroll_orientation == :vertical ? ".setAsVerticalList()" : ".setAsHorizontalList()"
       scroll_command = type == :start ? ".scrollToBeginning(#{DEFAULT_UIAUTOMATOR_MAX_SWIPES})" : ".scrollToEnd(#{DEFAULT_UIAUTOMATOR_MAX_SWIPES})"
       cmd = "new UiScrollable(#{scrollable_selector})#{orientation}#{scroll_command};"

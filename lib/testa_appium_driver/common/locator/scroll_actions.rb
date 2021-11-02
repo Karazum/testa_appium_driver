@@ -289,7 +289,7 @@ module TestaAppiumDriver
         x = to[:x]
         y = to[:y]
       end
-      _drag_to(x, y)
+      _drag_to(bounds.center.x, bounds.center.y, x, y)
     end
 
     def drag_by(amount, direction: :top)
@@ -308,7 +308,7 @@ module TestaAppiumDriver
       else
         raise "Unknown direction #{direction}"
       end
-      _drag_to(x, y)
+      _drag_to(b.center.x, b.center.y, x, y)
     end
 
 
@@ -326,11 +326,11 @@ module TestaAppiumDriver
       deadzone
     end
 
-    def _drag_to(x, y)
+    def _drag_to(x0, y0, x1, y1)
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,
                              default_scroll_strategy: @default_scroll_strategy)
-      sa.drag_to(x, y)
+      sa.drag_to(x0, y0, x1, y1)
       self
     end
 

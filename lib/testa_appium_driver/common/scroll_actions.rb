@@ -1,7 +1,6 @@
 require_relative 'scroll_actions/json_wire_scroll_actions'
 require_relative 'scroll_actions/w3c_scroll_actions'
 
-
 module TestaAppiumDriver
 
   # Class for handling scroll actions
@@ -21,7 +20,6 @@ module TestaAppiumDriver
       @default_scroll_strategy = params[:default_scroll_strategy]
       @driver = @locator.driver
 
-
       if @scrollable.nil?
         # if we dont have a scrollable element or if we do have it, but it is not compatible with uiautomator
         # then find first scrollable in document
@@ -30,15 +28,13 @@ module TestaAppiumDriver
 
       @strategy = nil
       if @scrollable.strategy == FIND_STRATEGY_XPATH || # uiautomator cannot resolve scrollable from a xpath locator
-          !@deadzone.nil? ||
-          !@scrollable.from_element.instance_of?(TestaAppiumDriver::Driver) # uiautomator cannot resolve nested scrollable
+        !@deadzone.nil? ||
+        !@scrollable.from_element.instance_of?(TestaAppiumDriver::Driver) # uiautomator cannot resolve nested scrollable
         @strategy = SCROLL_STRATEGY_W3C
       end
 
-
       @bounds = @scrollable.bounds
     end
-
 
     def align(with, scroll_to_find)
       w3c_align(with, scroll_to_find)
@@ -66,7 +62,6 @@ module TestaAppiumDriver
       w3c_each(:left, &block)
     end
 
-
     def resolve_strategy
       if @strategy.nil?
         @default_scroll_strategy
@@ -74,7 +69,6 @@ module TestaAppiumDriver
         @strategy
       end
     end
-
 
     def scroll_to
       if @locator.strategy != FIND_STRATEGY_XPATH && resolve_strategy == SCROLL_STRATEGY_UIAUTOMATOR
@@ -116,7 +110,6 @@ module TestaAppiumDriver
       end
     end
 
-
     def page_down
       if resolve_strategy == SCROLL_STRATEGY_UIAUTOMATOR
         uiautomator_page_or_fling(SCROLL_ACTION_TYPE_SCROLL, :down)
@@ -149,10 +142,10 @@ module TestaAppiumDriver
       end
     end
 
-
     def scroll_to_start
       if resolve_strategy == SCROLL_STRATEGY_UIAUTOMATOR
         uiautomator_scroll_to_start_or_end(:start)
+
       elsif resolve_strategy == SCROLL_STRATEGY_W3C
         w3c_scroll_to_start_or_end(:start)
       end
@@ -198,10 +191,9 @@ module TestaAppiumDriver
       end
     end
 
-    def drag_to(x, y)
-      w3c_drag_to(x, y)
+    def drag_to(x0, y0, x1, y1)
+      w3c_drag_to(x0, y0, x1, y1)
     end
-
 
     private
 
@@ -210,7 +202,6 @@ module TestaAppiumDriver
       @previous_elements = @scrollable.first_and_last_leaf
       old_elements == @previous_elements
     end
-
 
     def default_deadzone!
       @deadzone = {} if @deadzone.nil?

@@ -106,7 +106,7 @@ module TestaAppiumDriver
       end
 
       if is_scrollable_selector?(selectors, single)
-        locator.scrollable_locator = self
+        locator.scrollable_locator = locator
         if selectors[:class] == "android.widget.HorizontalScrollView"
           locator.scrollable_locator.scroll_orientation = :horizontal
         else
