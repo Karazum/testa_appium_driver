@@ -124,7 +124,8 @@ module TestaAppiumDriver
           puts "Using cache from #{@cache[:time].strftime("%H:%M:%S.%L")}, strategy: #{@cache[:strategy]}"
         end
       rescue => e
-        if (start_time + @implicit_wait_ms/1000 < Time.now.to_f && !ignore_implicit_wait) || ss_index < strategies_and_selectors.count
+        #if (start_time + @implicit_wait_ms/1000 < Time.now.to_f && !ignore_implicit_wait) || ss_index < strategies_and_selectors.count
+        if ss_index < strategies_and_selectors.count
           sleep EXISTS_WAIT if ss_index >= strategies_and_selectors.count
           retry
         else
