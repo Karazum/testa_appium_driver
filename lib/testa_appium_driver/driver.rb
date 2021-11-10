@@ -151,7 +151,7 @@ module TestaAppiumDriver
         @implicit_wait_ms = @implicit_wait_ms/1000 if @implicit_wait_ms > 100000
         @implicit_wait_uiautomator_ms = @driver.get_settings["waitForSelectorTimeout"]
         @driver.manage.timeouts.implicit_wait = 0
-        @driver.update_settings({waitForSelectorTimeout: 1})
+        @driver.update_settings({waitForSelectorTimeout: 0})
     end
 
 
@@ -159,7 +159,7 @@ module TestaAppiumDriver
     def disable_wait_for_idle
       if @device == :android
         @wait_for_idle_timeout = @driver.settings.get["waitForIdleTimeout"]
-        @driver.update_settings({waitForIdleTimeout: 1})
+        @driver.update_settings({waitForIdleTimeout: 0})
       end
     end
 
@@ -209,6 +209,9 @@ module TestaAppiumDriver
       @driver.hide_keyboard
     end
 
+    def home_key
+      @driver.press_keycode(3)
+    end
     def tab_key
       @driver.press_keycode(61)
     end
