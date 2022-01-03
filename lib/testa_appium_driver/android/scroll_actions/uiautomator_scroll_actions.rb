@@ -38,7 +38,6 @@ module TestaAppiumDriver
 
 
     def uiautomator_page_or_fling(type, direction)
-
       scrollable_selector = @scrollable.ui_selector(false)
       orientation = direction == :up || direction == :down ? ".setAsVerticalList()" : ".setAsHorizontalList()"
       if type == SCROLL_ACTION_TYPE_SCROLL

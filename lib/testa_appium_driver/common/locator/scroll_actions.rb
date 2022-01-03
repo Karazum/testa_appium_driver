@@ -70,6 +70,7 @@ module TestaAppiumDriver
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
     def align(with = :top, top: nil, bottom: nil, right: nil, left: nil, scroll_to_find: false)
+      deadzone = _process_deadzone(top, bottom, right, left)
       deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,

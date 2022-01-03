@@ -269,6 +269,36 @@ module TestaAppiumDriver
       @driver.long_press_keycode(code)
     end
 
+    def click(x, y)
+      ws = driver.window_size
+      window_width = ws.width.to_i
+      window_height = ws.height.to_i
+      if x.kind_of? Integer
+        if x < 0
+          x = window_width + x
+        end
+      elsif x.kind_of? Float
+        x = window_width*x
+      else
+        raise "x value #{x} not supported"
+      end
+
+      if y.kind_of? Integer
+        if y < 0
+          y = window_height + y
+        end
+      elsif y.kind_of? Float
+        y = window_height*y
+      end
+
+
+      action_builder = @driver.action
+      f1 = action_builder.add_pointer_input(:touch, "finger1")
+      f1.create_pointer_move(duration: 0, x: x, y: y, origin: ::Selenium::WebDriver::Interactions::PointerMove::VIEWPORT)
+      f1.create_pointer_down(:left)
+      f1.create_pointer_up(:left)
+      @driver.perform_actions [f1]
+    end
 
 
 

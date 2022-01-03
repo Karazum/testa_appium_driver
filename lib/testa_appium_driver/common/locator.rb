@@ -139,7 +139,6 @@ module TestaAppiumDriver
     end
 
     def when_exists(timeout = nil, &block)
-      timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
       found = false
       begin
         wait_until_exists(timeout)
@@ -161,7 +160,6 @@ module TestaAppiumDriver
     # @param [Integer] timeout in seconds
     # @return [TestaAppiumDriver::Locator]
     def wait_until_exists(timeout = nil)
-      timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
       args = {timeout: timeout}
       _wait(:until, args)
     end
@@ -170,7 +168,6 @@ module TestaAppiumDriver
     # @param [Integer] timeout in seconds
     # @return [TestaAppiumDriver::Locator]
     def wait_while_exists(timeout = nil)
-      timeout = @driver.get_timeouts["implicit"] / 1000 if timeout.nil?
       args = {timeout: timeout}
       _wait(:while, args)
     end
@@ -308,19 +305,55 @@ module TestaAppiumDriver
     end
 
 
-    def tap
-      click
+    def tap(x = nil, y = nil)
+      click(x, y)
     end
 
-    def click
-      if @driver.device == :android
-        perform_driver_method(:click)
+    # if both x or y, or both are not given, will click in the center of the element
+    # @param x If positive integer, will offset the click from the left side, if negative integer, will offset the click  from the right. If float value is given, it will threat it as percentage offset, giving it 0.5 will click in the middle
+    # @param y If positive integer, will offset the click from the bottom side, if negative integer, will offset the click  from the top. If float value is given, it will threat it as percentage offset, giving it 0.5 will click in the middle
+    def click(x = nil, y = nil)
+      if !x.nil? && !y.nil?
+
+        b = self.bounds
+        if x.kind_of? Integer
+          if x >= 0
+            x = b.top_left.x + x
+          else
+            x = b.bottom_right.x + x
+          end
+        elsif x.kind_of? Float
+          x = b.top_left.x + b.width*x
+        else
+          raise "x value #{x} not supported"
+        end
+
+        if y.kind_of? Integer
+          if y >= 0
+            y = b.bottom_right.y + y
+          else
+            y = b.top_left + y
+          end
+        elsif y.kind_of? Float
+          y = b.bottom_right.y + b.height*y
+        end
+
+        action_builder = @driver.action
+        f1 = action_builder.add_pointer_input(:touch, "finger1")
+        f1.create_pointer_move(duration: 0, x: x, y: y, origin: ::Selenium::WebDriver::Interactions::PointerMove::VIEWPORT)
+        f1.create_pointer_down(:left)
+        f1.create_pointer_up(:left)
+        @driver.perform_actions [f1]
       else
-        # on ios, if element is not visible, first click will scroll to it
-        # then on second click actually perform the click
-        visible = visible?
-        perform_driver_method(:click)
-        perform_driver_method(:click) unless visible rescue nil
+        if @driver.device == :android
+          perform_driver_method(:click)
+        else
+          # on ios, if element is not visible, first click will scroll to it
+          # then on second click actually perform the click
+          visible = visible?
+          perform_driver_method(:click)
+          perform_driver_method(:click) unless visible rescue nil
+        end
       end
     end
 
@@ -487,7 +520,8 @@ module TestaAppiumDriver
       message = args[:message] unless args[:message].nil?
 
       if args[:timeout].nil?
-        timeout = @driver.get_timeouts["implicit"] / 1000
+        #timeout = @driver.get_timeouts["implicit"] / 1000
+        timeout = 10
       else
         timeout = args[:timeout]
       end
