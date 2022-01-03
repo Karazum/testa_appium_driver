@@ -133,7 +133,7 @@ module TestaAppiumDriver
 
 
 
-      r = @driver.execute(@from_element, @single, strategies_and_selectors, skip_cache, ignore_implicit_wait)
+      r = @driver.execute(@from_element, @single, strategies_and_selectors, skip_cache: skip_cache, ignore_implicit_wait: ignore_implicit_wait)
       r = r[@index_for_multiple] if !@index_for_multiple.nil? && !@single
       r
     end

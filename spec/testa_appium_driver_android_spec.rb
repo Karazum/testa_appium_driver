@@ -15,6 +15,7 @@ RSpec.describe TestaAppiumDriver do
             :androidInstallTimeout => 600000,
             :uiautomator2ServerLaunchTimeout => 600000,
             :uiautomator2ServerInstallTimeout => 600000,
+            #waitForSelectorTimeout: 26,
             :waitForIdleTimeout => 3000,
             :appWaitPackage => "ro.superbet.sport.stage",
             :deviceName => "Phone",
@@ -23,10 +24,10 @@ RSpec.describe TestaAppiumDriver do
             :udid => "228b371032057ece",
             :automationName => "uiautomator2",
             :systemPort => rand(7000..32000),
-            #:noReset => true,
-            #:fullReset => false,
-            :noReset => false,
-            :fullReset => true,
+            :noReset => true,
+            :fullReset => false,
+            # :noReset => false,
+            # :fullReset => true,
             skipServerInstallation: true,
             :enableMultiWindows => true, # enables appium to see some otherwise "hidden" elements
             #:disableWindowAnimation => true,
@@ -55,16 +56,27 @@ RSpec.describe TestaAppiumDriver do
     #
     # puts "Buttons #{d.buttons(id: "buttonView").count}"
     # d.button(id: "buttonView").click
-    #
-    d.element(id: "analyticsPositiveView").wait_until_exists(10).click
-    d.element(id: "startPlayingRegisterView").click
 
 
-    inputs = d.edit_texts
+    puts "aaa"
 
-    inputs[0].send_keys "aaaabsdfbfd"
-    inputs[1].send_keys "aaaa@aaaa.aa"
-    inputs[2].send_keys "aaaaaa"
+    drag_handle = d.frame_layout(id: "defaultBetSlipView").linear_layout.view
+    puts drag_handle.bounds
+    drag_handle.wait_until_exists.drag_up_by(1000)
+    sleep 1
+
+    scrollable = d.element(id: "betSlipFragmentHolder").recycler_view(id:"recyclerView")
+    scrollable.elements(id: "match_holder").parent.each_down do |m|
+      puts "1"
+      name1 = m.element(id: "match_team1Name").text
+      name2 = m.element(id: "match_team2Name").text
+      market = m.element(id: "betOfferName").text
+      puts "name: #{name1} - #{name2}, market_name: #{market}"
+    end
+
+
+
+
     d.element(id: "buttonView").click
 
     d.text_view(text: "Județ").scroll_to.click

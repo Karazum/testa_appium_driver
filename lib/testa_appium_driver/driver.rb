@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-#require 'em/pure_ruby'
-#require 'appium_lib_core'
+require 'em/pure_ruby'
+require 'appium_lib_core'
 
 require_relative 'common/bounds'
 require_relative 'common/exceptions/strategy_mix_exception'
@@ -29,9 +29,6 @@ module TestaAppiumDriver
     def initialize(opts = {})
       @testa_opts = opts[:testa_appium_driver] || {}
 
-      @wait_for_idle_disabled = false
-      @implicit_wait_disabled = false
-
       core = Appium::Core.for(opts)
       extend_for(core.device, core.automation_name)
       @device = core.device
@@ -42,6 +39,9 @@ module TestaAppiumDriver
       @driver = core.start_driver
       invalidate_cache
 
+
+      disable_wait_for_idle
+      disable_implicit_wait
 
       Selenium::WebDriver::Element.set_driver(self, opts[:caps][:udid])
     end
@@ -69,11 +69,9 @@ module TestaAppiumDriver
     # @param [Array<Hash>] strategies_and_selectors array of usable strategies and selectors
     # @param [Boolean] skip_cache to skip checking and storing cache
     # @return [Selenium::WebDriver::Element, Array] element is returned if single is true, array otherwise
-    def execute(from_element, single, strategies_and_selectors, skip_cache = false, ignore_implicit_wait = false)
+    def execute(from_element, single, strategies_and_selectors, skip_cache: false, ignore_implicit_wait: false)
 
       # if user wants to wait for element to exist, he can use wait_until_present
-      disable_wait_for_idle
-      disable_implicit_wait
       start_time = Time.now.to_f
       ss_index = 0
 
@@ -126,15 +124,13 @@ module TestaAppiumDriver
           puts "Using cache from #{@cache[:time].strftime("%H:%M:%S.%L")}, strategy: #{@cache[:strategy]}"
         end
       rescue => e
-        if (start_time + @implicit_wait_ms/1000 < Time.now.to_f && !ignore_implicit_wait) || ss_index < strategies_and_selectors.count
+        #if (start_time + @implicit_wait_ms/1000 < Time.now.to_f && !ignore_implicit_wait) || ss_index < strategies_and_selectors.count
+        if ss_index < strategies_and_selectors.count
           sleep EXISTS_WAIT if ss_index >= strategies_and_selectors.count
           retry
         else
           raise e
         end
-      ensure
-        enable_implicit_wait
-        enable_wait_for_idle
       end
 
       execute_result
@@ -151,46 +147,22 @@ module TestaAppiumDriver
 
     # disables implicit wait
     def disable_implicit_wait
-      unless @implicit_wait_disabled
-        @implicit_wait_ms = @driver.get_timeouts["implicit"]
+        @implicit_wait_ms = @driver.get_timeouts["implicit"].to_i
+        @implicit_wait_ms = @implicit_wait_ms/1000 if @implicit_wait_ms > 100000
         @implicit_wait_uiautomator_ms = @driver.get_settings["waitForSelectorTimeout"]
         @driver.manage.timeouts.implicit_wait = 0
         @driver.update_settings({waitForSelectorTimeout: 0})
-        @implicit_wait_disabled = true
-      end
     end
 
-    # enables implicit wait, can be called only after disabling implicit wait
-    def enable_implicit_wait
-      unless @implicit_wait_disabled && @implicit_wait_ms.nil?
-        @implicit_wait_ms = 10000
-      end
-      # get_timeouts always returns in milliseconds, but we should set in seconds
-      @driver.manage.timeouts.implicit_wait = @implicit_wait_ms / 1000
-      @driver.update_settings({waitForSelectorTimeout: @implicit_wait_uiautomator_ms})
-      @implicit_wait_disabled = false
-    end
 
     # disables wait for idle, only executed for android devices
     def disable_wait_for_idle
-      unless @wait_for_idle_disabled
-        if @device == :android
-          @wait_for_idle_timeout = @driver.settings.get["waitForIdleTimeout"]
-          @driver.update_settings({waitForIdleTimeout: 0})
-        end
-        @wait_for_idle_disabled = true
+      if @device == :android
+        @wait_for_idle_timeout = @driver.settings.get["waitForIdleTimeout"]
+        @driver.update_settings({waitForIdleTimeout: 0})
       end
     end
 
-    # enables wait for idle, only executed for android devices
-    def enable_wait_for_idle
-      if @device == :android
-        unless @wait_for_idle_disabled && @wait_for_idle_timeout.nil?
-          @wait_for_idle_timeout = 10000
-        end
-        @driver.update_settings({waitForIdleTimeout: @wait_for_idle_timeout})
-      end
-    end
 
     def set_find_by_image_settings(settings)
       settings.delete(:image)
@@ -237,6 +209,9 @@ module TestaAppiumDriver
       @driver.hide_keyboard
     end
 
+    def home_key
+      @driver.press_keycode(3)
+    end
     def tab_key
       @driver.press_keycode(61)
     end
@@ -304,11 +279,7 @@ module TestaAppiumDriver
 
     # @return [Array<Selenium::WebDriver::Element] array of 2 elements, the first element without children and the last element without children in the current page
     def first_and_last_leaf(from_element = @driver)
-      disable_wait_for_idle
-      disable_implicit_wait
       elements = from_element.find_elements(xpath: "//*[not(*)]")
-      enable_implicit_wait
-      enable_wait_for_idle
       return nil if elements.count == 0
       [elements[0], elements[-1]]
     end

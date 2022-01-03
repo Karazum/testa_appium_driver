@@ -7,7 +7,6 @@ module TestaAppiumDriver
 
       @driver = get_driver if self.instance_of?(Selenium::WebDriver::Element)
 
-      @driver.disable_wait_for_idle
       if elements.kind_of?(Selenium::WebDriver::Element)
         r = elements.send(:attribute, name.to_s)
         r = TestaAppiumDriver::Bounds.from_android(r, @driver) if name.to_s == "bounds"
@@ -15,7 +14,6 @@ module TestaAppiumDriver
         r = elements.map { |e| e.send(:attribute, name.to_s) }
         r.map! { |b| TestaAppiumDriver::Bounds.from_android(b, @driver) } if name.to_s == "bounds"
       end
-      @driver.enable_wait_for_idle
       r
     end
 
@@ -110,7 +108,7 @@ module TestaAppiumDriver
       children = self.dup.parent.children.execute
       index = children.index(this)
       raise "Index not found" if index.nil?
-      index
+      index.to_i
     end
   end
 end

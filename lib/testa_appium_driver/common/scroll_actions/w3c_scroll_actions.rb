@@ -23,6 +23,7 @@ module TestaAppiumDriver
         until is_end_of_scroll?
           matches = @locator.execute(skip_cache: true)
           matches.each_with_index do |m|
+            next if elements.include?(m)
             elements << m
             if block_given? # block is given
               block.call(m) # use call to execute the block
@@ -228,10 +229,8 @@ module TestaAppiumDriver
 
 
 
-    def w3c_drag_to(x, y)
-      x0 = @bounds.center.x
-      y0 = @bounds.center.y
-      w3c_action(x0, y0, x, y, SCROLL_ACTION_TYPE_DRAG)
+    def w3c_drag_to(x0, y0, x1, y1)
+      w3c_action(x0, y0, x1, y1, SCROLL_ACTION_TYPE_DRAG)
     end
 
   end

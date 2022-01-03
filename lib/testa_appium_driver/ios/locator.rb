@@ -55,7 +55,7 @@ module TestaAppiumDriver
 
       if is_scrollable_selector?(selectors, single)
         locator.scrollable_locator.scroll_orientation = :vertical
-        locator.scrollable_locator = self.dup
+        locator.scrollable_locator = locator
       end
 
       locator.last_selector_adjacent = false
