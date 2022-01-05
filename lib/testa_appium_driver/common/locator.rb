@@ -266,10 +266,8 @@ module TestaAppiumDriver
           strategy: @strategy,
           default_strategy: @default_find_strategy,
           single: @single,
-          context: @from_element.nil? ? nil : @from_element.to_s,
           uiautomator: defined?(self.ui_selector) ? ui_selector : nil,
           xpath: @xpath_selector,
-          scrollable: @scrollable_locator.nil? ? nil : @scrollable_locator.to_s,
           scroll_orientation: @scroll_orientation,
           resolved: strategies_and_selectors,
           index_for_multiple: @index_for_multiple
