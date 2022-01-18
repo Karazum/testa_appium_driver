@@ -42,24 +42,24 @@ module TestaAppiumDriver
     end
 
     # @return [Array]
-    def each(&block)
-      w3c_each(nil, &block)
+    def scroll_each(&block)
+      w3c_scroll_each(nil, &block)
     end
 
-    def each_down(&block)
-      w3c_each(:down, &block)
+    def scroll_each_down(&block)
+      w3c_scroll_each(:down, &block)
     end
 
-    def each_up(&block)
-      w3c_each(:up, &block)
+    def scroll_each_up(&block)
+      w3c_scroll_each(:up, &block)
     end
 
-    def each_right(&block)
-      w3c_each(:right, &block)
+    def scroll_each_right(&block)
+      w3c_scroll_each(:right, &block)
     end
 
-    def each_left(&block)
-      w3c_each(:left, &block)
+    def scroll_each_left(&block)
+      w3c_scroll_each(:left, &block)
     end
 
     def resolve_strategy
