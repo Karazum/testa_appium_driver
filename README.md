@@ -135,11 +135,11 @@ The command marks the last selector as scrollable container.
 
 #### Example 4
 ```ruby
-driver.buttons.each do |element|
+driver.buttons.scroll_each do |element|
   puts element.text
 end
 ```
-The `each` method is one of the scrollable actions. It will start from the beginning of the scrollable container,
+The `scroll_each` method is one of the scrollable actions. It will start from the beginning of the scrollable container,
 in this case `driver.scrollable`, and find every button in the screen. It will scroll the page until the end of scrollable 
 container is reached and all buttons are found.
 
@@ -227,7 +227,7 @@ Adjacent selectors
 - following_siblings
 
 
-Class Selector arguments
+Element Selector arguments
 - id
 - long_clickable
 - desc
@@ -243,6 +243,18 @@ Class Selector arguments
 - index
 - selected
 - scrollable
+
+
+- image
+- imageMatchThreshold (option for image selector)
+- fixImageFindScreenshotDims (option for image selector)
+- fixImageTemplateSize (option for image selector)
+- fixImageTemplateScale (option for image selector)
+- defaultImageTemplateScale (option for image selector)
+- checkForImageElementStaleness (option for image selector)
+- autoUpdateImageElementPosition (option for image selector)
+- imageElementTapStrategy (option for image selector)
+- getMatchedImageResult (option for image selector)
 
 ### Attributes
 - text
@@ -301,15 +313,27 @@ Adjacent selectors
 - following_sibling
 - following_siblings
 
-Type Selector arguments
+Element Selector arguments
+- name, id
 - enabled
 - type, class
 - label
 - width
 - height
 - visible
-- name, id
 - value
+
+
+- image
+- imageMatchThreshold (option for image selector)
+- fixImageFindScreenshotDims (option for image selector)
+- fixImageTemplateSize (option for image selector)
+- fixImageTemplateScale (option for image selector)
+- defaultImageTemplateScale (option for image selector)
+- checkForImageElementStaleness (option for image selector)
+- autoUpdateImageElementPosition (option for image selector)
+- imageElementTapStrategy (option for image selector)
+- getMatchedImageResult (option for image selector)
 
 
 ## Attributes
@@ -328,11 +352,11 @@ Type Selector arguments
 - visible?
 
 # Scroll actions
-- each
-- each_down
-- each_up
-- each_left
-- each_right
+- scroll_each
+- scroll_each_down
+- scroll_each_up
+- scroll_each_left
+- scroll_each_right
 - align! (if does not exist, will scroll to find)
 - align_top! (if does not exist, will scroll to find)
 - align_bottom! (if does not exist, will scroll to find)

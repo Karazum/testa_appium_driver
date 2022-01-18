@@ -25,4 +25,9 @@
     <orderEntry type="library" scope="PROVIDED" name="ruby-progressbar (v1.11.0, RVM: ruby-2.7.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="unicode-display_width (v2.1.0, RVM: ruby-2.7.0) [gem]" level="application" />
   </component>
+  <component name="RakeTasksCache">
+    <option name="myRootTask">
+      <RakeTaskImpl id="rake" />
+    </option>
+  </component>
 </module>
