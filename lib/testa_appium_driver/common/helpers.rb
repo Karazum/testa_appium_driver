@@ -101,7 +101,7 @@ module TestaAppiumDriver
           command = "#{command}*"
         end
 
-
+        # TODO: with new uiautomator sever you can use matches to look with regex instead of contains
         command = "#{ command }[@resource-id=\"#{ %(#{ id }) }\"]" if  id &&  id.kind_of?(String)
         command = "#{ command }[contains(@resource-id, \"#{ %(#{ id.source }) }\")]" if  id &&  id.kind_of?(Regexp)
         command = "#{ command }[@content-desc=\"#{ %(#{hash[:desc] }) }\"]" if hash[:desc] && hash[:desc].kind_of?(String)

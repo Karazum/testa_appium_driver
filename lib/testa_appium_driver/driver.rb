@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'em/pure_ruby'
+#require 'em/pure_ruby'
 require 'appium_lib_core'
 
 require_relative 'common/bounds'
@@ -27,6 +27,7 @@ module TestaAppiumDriver
     # - default_find_strategy: default strategy to be used for finding elements. Available strategies :uiautomator or :xpath
     # - default_scroll_strategy: default strategy to be used for scrolling. Available strategies: :uiautomator(android only), :w3c
     def initialize(opts = {})
+
       @testa_opts = opts[:testa_appium_driver] || {}
 
       core = Appium::Core.for(opts)
@@ -38,7 +39,6 @@ module TestaAppiumDriver
 
       @driver = core.start_driver
       invalidate_cache
-
 
       disable_wait_for_idle
       disable_implicit_wait
@@ -159,7 +159,7 @@ module TestaAppiumDriver
     def disable_wait_for_idle
       if @device == :android
         @wait_for_idle_timeout = @driver.settings.get["waitForIdleTimeout"]
-        @driver.update_settings({waitForIdleTimeout: 1})
+        @driver.update_settings({waitForIdleTimeout: 0})
       end
     end
 
@@ -279,7 +279,7 @@ module TestaAppiumDriver
 
     # @return [Array<Selenium::WebDriver::Element] array of 2 elements, the first element without children and the last element without children in the current page
     def first_and_last_leaf(from_element = @driver)
-      elements = from_element.find_elements(xpath: "//*[not(*)]")
+      elements = from_element.find_elements(xpath: ".//*[not(*)]")
       return nil if elements.count == 0
       [elements[0], elements[-1]]
     end
