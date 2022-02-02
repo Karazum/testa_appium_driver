@@ -31,17 +31,18 @@ module TestaAppiumDriver
       @testa_opts = opts[:testa_appium_driver] || {}
 
       core = Appium::Core.for(opts)
-      extend_for(core.device, core.automation_name)
-      @device = core.device
-      @automation_name = core.automation_name
+      @driver = core.start_driver
+      @automation_name = @driver.capabilities["automationName"].downcase.to_sym
+      @device = @driver.capabilities.platform_name.downcase.to_sym
+
+      extend_for(@device, @automation_name)
 
       handle_testa_opts
 
-      @driver = core.start_driver
       invalidate_cache
 
-      disable_wait_for_idle
-      disable_implicit_wait
+      #disable_wait_for_idle
+      #disable_implicit_wait
 
       Selenium::WebDriver::Element.set_driver(self, opts[:caps][:udid])
     end
@@ -151,7 +152,7 @@ module TestaAppiumDriver
         @implicit_wait_ms = @implicit_wait_ms/1000 if @implicit_wait_ms > 100000
         @implicit_wait_uiautomator_ms = @driver.get_settings["waitForSelectorTimeout"]
         @driver.manage.timeouts.implicit_wait = 0
-        @driver.update_settings({waitForSelectorTimeout: 1})
+        @driver.update_settings({waitForSelectorTimeout: 0})
     end
 
 
