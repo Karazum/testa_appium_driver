@@ -16,7 +16,7 @@ RSpec.describe TestaAppiumDriver do
             :uiautomator2ServerLaunchTimeout => 600000,
             :uiautomator2ServerInstallTimeout => 600000,
             #waitForSelectorTimeout: 26,
-            :waitForIdleTimeout => 3000,
+            :waitForIdleTimeout => 1,
             :appWaitPackage => "ro.superbet.sport.stage",
             :deviceName => "Phone",
             :app => "/ruby_apps/hard_storage/project_files/2/apks/bc72173fd9b03e80c58161f2a881c1e679ce368ba9ca79855501597ce2e312ad.apk",

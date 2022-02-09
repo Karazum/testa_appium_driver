@@ -117,17 +117,17 @@ module TestaAppiumDriver
       add_selector(params)
     end
 
-    # first android.widget.ViewGroup element that match given selectors
+    # first android.view.ViewGroup element that match given selectors
     # @return [TestaAppiumDriver::Locator]
     def view_group(params = {})
-      params[:class] = "android.widget.ViewGroup"
+      params[:class] = "android.view.ViewGroup"
       add_selector(params)
     end
 
-    # all android.widget.ViewGroup elements that match given selectors
+    # all android.view.ViewGroup elements that match given selectors
     # @return [TestaAppiumDriver::Locator]
     def view_groups(params = {})
-      params[:class] = "android.widget.ViewGroup"
+      params[:class] = "android.view.ViewGroup"
       params[:single] = false
       add_selector(params)
     end

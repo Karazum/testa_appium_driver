@@ -3,7 +3,7 @@ module TestaAppiumDriver
 
     private
     # @return [Array]
-    def w3c_each(direction, &block)
+    def w3c_scroll_each(direction, &block)
       elements = []
       begin
         default_deadzone!

@@ -5,7 +5,7 @@ module TestaAppiumDriver
     def attribute(name, *args)
       elements = execute(*args)
 
-      if elements.instance_of?(Selenium::WebDriver::Element)
+      if elements.instance_of?(Selenium::WebDriver::Element) || elements.instance_of?(Appium::Core::Element)
         r = elements.send(:attribute, name.to_s)
         r = TestaAppiumDriver::Bounds.from_ios(r, @driver) if name.to_s == "rect"
       else
