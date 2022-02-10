@@ -1,5 +1,5 @@
-module Selenium
-  module WebDriver
+module ::Appium
+  module Core
     class Element
       # sets the testa appium driver instance for the current phone
       def self.set_driver(driver, udid)

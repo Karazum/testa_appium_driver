@@ -6,6 +6,7 @@ module TestaAppiumDriver
   class Locator
     include Helpers
 
+
     attr_accessor :xpath_selector
     attr_accessor :single
 
@@ -59,7 +60,7 @@ module TestaAppiumDriver
       end
 
       selectors[:id] = selectors[:name] unless selectors[:name].nil?
-      if from_element.instance_of?(Selenium::WebDriver::Element)
+      if from_element.instance_of?(::Selenium::WebDriver::Element) || from_element.instance_of?(::Appium::Core::Element)
         @xpath_selector = "//*" # to select current element
         @xpath_selector += hash_to_xpath(@driver.device, selectors, single)[1..-1]
       else
@@ -123,7 +124,7 @@ module TestaAppiumDriver
       # and since we are looking for instance 2, [](instance) method will return new "empty locator"
       # we are executing click on that "empty locator" so we have to return the instance 2 of elements for the click
       if @xpath_selector == "//*[1]" && !@from_element.nil? && @image_selector.nil?
-        return @from_element if @from_element.instance_of?(Selenium::WebDriver::Element)
+        return @from_element if @from_element.instance_of?(::Selenium::WebDriver::Element) || @from_element.instance_of?(::Appium::Core::Element)
         return @from_element.execute(skip_cache: skip_cache, force_cache_element: force_cache_element, ignore_implicit_wait: ignore_implicit_wait) if @from_element.instance_of?(TestaAppiumDriver::Locator)
         return @from_element
       end
@@ -548,7 +549,7 @@ module TestaAppiumDriver
     def _attributes_match(attributes)
       all_match = true
       attributes.each do |key, value|
-        unless attribute(key) == value
+        unless testa_attribute(key) == value
           all_match = false
           break
         end

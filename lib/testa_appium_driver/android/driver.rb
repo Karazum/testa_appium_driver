@@ -8,6 +8,7 @@ module TestaAppiumDriver
     include ClassSelectors
 
 
+
     # executes shell command
     # @param [String] command Shell command name to execute for example echo or rm
     # @param [Array<String>] args Array of command arguments, example: ['-f', '/sdcard/my_file.txt']

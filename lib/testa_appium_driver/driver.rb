@@ -44,7 +44,7 @@ module TestaAppiumDriver
       #disable_wait_for_idle
       #disable_implicit_wait
 
-      Selenium::WebDriver::Element.set_driver(self, opts[:caps][:udid])
+      ::Appium::Core::Element.set_driver(self, @driver.capabilities["udid"])
     end
 
 

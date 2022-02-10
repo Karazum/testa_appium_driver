@@ -5,6 +5,7 @@ module TestaAppiumDriver
   class Locator
     attr_accessor :closing_parenthesis
     include ClassSelectors
+    include Attributes
 
     def init(params, selectors, single)
       @closing_parenthesis = 0

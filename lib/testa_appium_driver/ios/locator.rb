@@ -3,6 +3,7 @@ require_relative 'locator/attributes'
 module TestaAppiumDriver
   class Locator
     include TypeSelectors
+    include Attributes
     attr_accessor :class_chain_selector
 
     def init(params, selectors, single)

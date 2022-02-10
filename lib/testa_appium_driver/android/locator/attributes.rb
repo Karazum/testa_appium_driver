@@ -2,12 +2,16 @@ module TestaAppiumDriver
   module Attributes
 
     #noinspection RubyNilAnalysis
-    def attribute(name, *args)
-      elements = execute(*args)
+    def testa_attribute(name, *args)
+      if self.instance_of?(::Selenium::WebDriver::Element) || self.instance_of?(::Appium::Core::Element)
+        @driver = get_driver # does not get correct driver
+        elements = self
+      else
+        elements = execute(*args)
+      end
 
-      @driver = get_driver if self.instance_of?(Selenium::WebDriver::Element)
 
-      if elements.kind_of?(Selenium::WebDriver::Element)
+      if elements.kind_of?(::Selenium::WebDriver::Element) || elements.kind_of?(::Appium::Core::Element)
         r = elements.send(:attribute, name.to_s)
         r = TestaAppiumDriver::Bounds.from_android(r, @driver) if name.to_s == "bounds"
       else
@@ -18,86 +22,84 @@ module TestaAppiumDriver
     end
 
     def text(*args)
-      attribute("text", *args)
+      testa_attribute("text", *args)
     end
 
     def package(*args)
-      attribute("package", *args)
+      testa_attribute("package", *args)
     end
 
     def class_name(*args)
-      attribute("className", *args)
+      testa_attribute("className", *args)
     end
 
     def checkable?(*args)
-      attribute("checkable", *args).to_s == "true"
+      testa_attribute("checkable", *args).to_s == "true"
     end
 
     def checked?(*args)
-      attribute("checked", *args).to_s == "true"
+      testa_attribute("checked", *args).to_s == "true"
     end
 
     def clickable?(*args)
-      attribute("clickable", *args).to_s == "true"
+      testa_attribute("clickable", *args).to_s == "true"
     end
 
     def desc(*args)
-      attribute("contentDescription", *args)
+      testa_attribute("contentDescription", *args)
     end
 
     def enabled?(*args)
-      attribute("enabled", *args).to_s == "true"
+      testa_attribute("enabled", *args).to_s == "true"
     end
 
     def focusable?(*args)
-      attribute("focusable", *args).to_s == "true"
+      testa_attribute("focusable", *args).to_s == "true"
     end
 
     def focused?(*args)
-      attribute("focused", *args).to_s == "true"
+      testa_attribute("focused", *args).to_s == "true"
     end
 
     def long_clickable?(*args)
-      attribute("longClickable", *args).to_s == "true"
+      testa_attribute("longClickable", *args).to_s == "true"
     end
 
     def password?(*args)
-      attribute("password", *args).to_s == "true"
+      testa_attribute("password", *args).to_s == "true"
     end
 
     def id(*args)
-      attribute("resourceId", *args)
+      testa_attribute("resourceId", *args)
     end
 
     def scrollable?(*args)
-      attribute("scrollable", *args).to_s == "true"
+      testa_attribute("scrollable", *args).to_s == "true"
     end
 
     def selected?(*args)
-      attribute("selected", *args).to_s == "true"
+      testa_attribute("selected", *args).to_s == "true"
     end
 
     def displayed?(*args)
-      attribute("displayed", *args).to_s == "true"
+      testa_attribute("displayed", *args).to_s == "true"
     end
 
     def selection_start(*args)
-      attribute("selection-start", *args)
+      testa_attribute("selection-start", *args)
     end
 
     def selection_end(*args)
-      attribute("selection-end", *args)
+      testa_attribute("selection-end", *args)
     end
 
     def bounds(*args)
-      attribute("bounds", *args)
+      testa_attribute("bounds", *args)
     end
 
   end
 
   class Locator
-    include TestaAppiumDriver::Attributes
-
 
     # element index in parent element, starts from 0
     #noinspection RubyNilAnalysis,RubyYardReturnMatch

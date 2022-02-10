@@ -20,7 +20,7 @@ module TestaAppiumDriver
     # scrolls to the start of the scrollable containers and scrolls to the end,
     # everytime a locator element is found the given block is executed
     # @return [Array<Selenium::WebDriver::Element>]
-    def each(top: nil, bottom: nil, right: nil, left: nil, direction: nil, &block)
+    def scroll_each(top: nil, bottom: nil, right: nil, left: nil, direction: nil, &block)
       deadzone = _process_deadzone(top, bottom, right, left)
       raise "Each can only be performed on multiple elements locator" if @single
       deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
@@ -29,38 +29,38 @@ module TestaAppiumDriver
                              deadzone: deadzone,
                              default_scroll_strategy: @default_scroll_strategy)
       if direction.nil?
-        sa.each(&block)
+        sa.scroll_each(&block)
       else
-        sa.send("each_#{direction}", &block)
+        sa.send("scroll_each_#{direction}", &block)
       end
     end
 
     # scrolls down from the current page view (without prior scrolling to the top) and
     # everytime a locator element is found the given block is executed
     # @return [Array<Selenium::WebDriver::Element>]
-    def each_down(top: nil, bottom: nil, right: nil, left: nil, &block)
-      each(top: top, bottom: bottom, right: right, left: left, direction: :down, &block)
+    def scroll_each_down(top: nil, bottom: nil, right: nil, left: nil, &block)
+      scroll_each(top: top, bottom: bottom, right: right, left: left, direction: :down, &block)
     end
 
     # scrolls up from the current page view (without prior scrolling to the bottom) and
     # everytime a locator element is found the given block is executed
     # @return [Array<Selenium::WebDriver::Element>]
-    def each_up(top: nil, bottom: nil, right: nil, left: nil, &block)
-      each(top: top, bottom: bottom, right: right, left: left, direction: :up, &block)
+    def scroll_each_up(top: nil, bottom: nil, right: nil, left: nil, &block)
+      scroll_each(top: top, bottom: bottom, right: right, left: left, direction: :up, &block)
     end
 
     # scrolls right from the current page view (without prior scrolling to the left) and
     # everytime a locator element is found the given block is executed
     # @return [Array<Selenium::WebDriver::Element>]
-    def each_right(top: nil, bottom: nil, right: nil, left: nil, &block)
-      each(top: top, bottom: bottom, right: right, left: left, direction: :right, &block)
+    def scroll_each_right(top: nil, bottom: nil, right: nil, left: nil, &block)
+      scroll_each(top: top, bottom: bottom, right: right, left: left, direction: :right, &block)
     end
 
     # scrolls left from the current page view (without prior scrolling to the right) and
     # everytime a locator element is found the given block is executed
     # @return [Array<Selenium::WebDriver::Element>]
-    def each_left(top: nil, bottom: nil, right: nil, left: nil, &block)
-      each(top: top, bottom: bottom, right: right, left: left, direction: :left, &block)
+    def scroll_each_left(top: nil, bottom: nil, right: nil, left: nil, &block)
+      scroll_each(top: top, bottom: bottom, right: right, left: left, direction: :left, &block)
     end
 
 
@@ -271,10 +271,10 @@ module TestaAppiumDriver
     # @param [TestaAppiumDriver::Locator, Hash, Selenium::WebDriver::Element, String] to
     #noinspection RubyYardParamTypeMatch,RubyScope
     def drag_to(to)
-      if !to.kind_of?(Selenium::WebDriver::Element) && !to.kind_of?(TestaAppiumDriver::Locator) && !to.kind_of?(Hash)
+      if !to.kind_of?(::Selenium::WebDriver::Element) && !to.kind_of?(::Appium::Core::Element) && !to.kind_of?(TestaAppiumDriver::Locator) && !to.kind_of?(Hash)
         raise "Parameter not accepted, acceptable instances of [TestaAppiumDriver::Locator, Hash, Selenium::WebDriver::Element]"
       end
-      if to.kind_of?(Selenium::WebDriver::Element)
+      if to.kind_of?(::Selenium::WebDriver::Element) || to.kind_of?(::Appium::Core::Element)
         bounds = TestaAppiumDriver::Bounds.from_android(to.bounds, @driver)
         x = bounds.center.x
         y = bounds.center.y

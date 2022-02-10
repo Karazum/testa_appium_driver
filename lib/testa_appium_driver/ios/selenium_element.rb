@@ -1,5 +1,5 @@
-module Selenium
-  module WebDriver
+module ::Appium
+  module Core
     class Element
       include TestaAppiumDriver::TypeSelectors
     end
