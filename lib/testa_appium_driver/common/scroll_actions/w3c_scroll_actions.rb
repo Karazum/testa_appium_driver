@@ -20,10 +20,11 @@ module TestaAppiumDriver
           end
         end
 
+        previous_matches = []
         until is_end_of_scroll?
           matches = @locator.execute(skip_cache: true)
           matches.each_with_index do |m|
-            next if elements.include?(m)
+            next if previous_matches.include?(m)
             elements << m
             if block_given? # block is given
               block.call(m) # use call to execute the block
@@ -34,6 +35,7 @@ module TestaAppiumDriver
           iterations += 1
           break if !@max_scrolls.nil? && iterations == @max_scrolls
           self.send("page_#{direction}")
+          previous_matches = matches
         end
       rescue => e
         raise e
