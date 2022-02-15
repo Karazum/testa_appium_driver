@@ -173,7 +173,9 @@ module TestaAppiumDriver
           y0 = @bounds.top_left.y + @deadzone[:top].to_i
           y1 = @bounds.bottom_right.y - @deadzone[:bottom].to_i
         end
-        x0 = @bounds.width / 2
+        x0 = @bounds.top_left.x + (@bounds.width - @deadzone[:left].to_i - @deadzone[:right].to_i)/ 2
+        x0 = @bounds.top_left.x if x0 < @bounds.top_left.x
+        x0 = @bounds.bottom_right.x if x0 > @bounds.bottom_right.x
         x1 = x0
       else
         if direction == :right
@@ -183,7 +185,10 @@ module TestaAppiumDriver
           x0 = @bounds.top_left.x + @deadzone[:left].to_i
           x1 = @bounds.bottom_right.x - @deadzone[:right].to_i
         end
-        y0 = @bounds.height / 2
+
+        y0 = @bounds.top_left.y + (@bounds.height -  @deadzone[:top].to_i - @deadzone[:bottom].to_i)/ 2
+        y0 = @bounds.top_left.y if y0 < @bounds.top_left.y
+        y0 = @bounds.bottom_right.y if y0 > @bounds.bottom_right.y
         y1 = y0
       end
       x1, y1 = apply_w3c_correction(x1, y1, direction) if @driver.device == :android
