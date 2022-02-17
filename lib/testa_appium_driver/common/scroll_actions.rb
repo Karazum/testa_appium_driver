@@ -5,6 +5,7 @@ module TestaAppiumDriver
 
   # Class for handling scroll actions
   class ScrollActions
+    attr_accessor :locator
     # @param [TestaAppiumDriver::Locator, nil] scrollable container that will be used to determine the bounds for scrolling
     # @param [Hash] params
     #   acceptable params
@@ -36,8 +37,8 @@ module TestaAppiumDriver
       @bounds = @scrollable.bounds
     end
 
-    def align(with, scroll_to_find)
-      w3c_align(with, scroll_to_find)
+    def align(with, scroll_to_find, max_attempts)
+      w3c_align(with, scroll_to_find, max_attempts)
       @locator
     end
 

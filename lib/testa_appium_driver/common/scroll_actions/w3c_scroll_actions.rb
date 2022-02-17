@@ -1,7 +1,7 @@
 module TestaAppiumDriver
   class ScrollActions
 
-    private
+
     # @return [Array]
     def w3c_scroll_each(direction, &block)
       elements = []
@@ -19,14 +19,34 @@ module TestaAppiumDriver
             direction = :right
           end
         end
+        case direction
+        when :up
+          align_with = :bottom
+        when :down
+          align_with = :top
+        when :right
+          align_with = :left
+        when :left
+          align_with = :right
+        else
+          align_with = :top
+        end
 
-        previous_matches = []
+
+        previous_match_ids = []
+
         until is_end_of_scroll?
+          aligned_items = 0
           matches = @locator.execute(skip_cache: true)
           matches.each_with_index do |m|
-            next if previous_matches.include?(m)
+            next if previous_match_ids.include?(m.id)
+            sa = self.dup
+            sa.locator = m
+            sa.w3c_align(align_with, false, 1, speed_coef: 2.0)
+            aligned_items += 1
             elements << m
             if block_given? # block is given
+              @locator.driver.invalidate_cache
               block.call(m) # use call to execute the block
             else # the value of block_argument becomes nil if you didn't give a block
               # block was not given
@@ -34,35 +54,41 @@ module TestaAppiumDriver
           end
           iterations += 1
           break if !@max_scrolls.nil? && iterations == @max_scrolls
-          self.send("page_#{direction}")
-          previous_matches = matches
+          self.send("page_#{direction}") if aligned_items == 0
+          previous_match_ids = matches.map{|ma| ma.id}
         end
       rescue => e
         raise e
-
       end
       elements
     end
 
-    def w3c_align(with, scroll_to_find)
+    def w3c_align(with, scroll_to_find, max_attempts, speed_coef: 1.25)
       default_deadzone!
 
 
 
       @locator.scroll_to if scroll_to_find
 
-      element = @locator.execute
+      if @locator.instance_of?(TestaAppiumDriver::Locator)
+        element = @locator.execute
+      else
+        element = @locator
+      end
+
+
+      max_attempts = 3 if max_attempts.nil? || max_attempts <= 0
 
       timeout = 0
-      until is_aligned?(with, element) || timeout == 3
-        w3c_attempt_align(with)
+      until is_aligned?(with, element) || timeout == max_attempts
+        w3c_attempt_align(with, speed_coef)
         timeout += 1
       end
 
     end
 
 
-    def w3c_attempt_align(with)
+    def w3c_attempt_align(with, speed_coef)
       case with
       when :top
         y0 = @bounds.bottom_right.y - @deadzone[:bottom]
@@ -93,7 +119,7 @@ module TestaAppiumDriver
       end
 
       x1, y1 = apply_w3c_correction(x1, y1, scroll_direction) if @driver.device == :android
-      w3c_action(x0, y0, x1, y1, SCROLL_ACTION_TYPE_SCROLL)
+      w3c_action(x0, y0, x1, y1, SCROLL_ACTION_TYPE_SCROLL, speed_coef: speed_coef)
     end
 
 
@@ -199,13 +225,14 @@ module TestaAppiumDriver
     end
 
 
-    def w3c_action(x0, y0, x1, y1, type)
+    def w3c_action(x0, y0, x1, y1, type, speed_coef: 1.0)
+      speed_coef = 1/speed_coef
       if type == SCROLL_ACTION_TYPE_SCROLL
-        duration = 1.8
+        duration = 1.8*speed_coef
       elsif type == SCROLL_ACTION_TYPE_FLING
-        duration = 0.1
+        duration = 0.1*speed_coef
       elsif type == SCROLL_ACTION_TYPE_DRAG
-        duration = 3.5
+        duration = 3.5*speed_coef
       else
         raise "Unknown scroll action type #{type}"
       end

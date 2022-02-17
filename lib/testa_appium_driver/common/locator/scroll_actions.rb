@@ -69,14 +69,14 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align(with = :top, top: nil, bottom: nil, right: nil, left: nil, scroll_to_find: false)
+    def align(with = :top, top: nil, bottom: nil, right: nil, left: nil, scroll_to_find: false, max_attempts: 3)
       deadzone = _process_deadzone(top, bottom, right, left)
       deadzone = @scrollable_locator.scroll_deadzone if deadzone.nil? && !@scrollable_locator.nil?
       sa = ScrollActions.new(@scrollable_locator,
                              locator: self,
                              deadzone: deadzone,
                              default_scroll_strategy: @default_scroll_strategy)
-      sa.align(with, scroll_to_find)
+      sa.align(with, scroll_to_find, max_attempts)
       self
     end
 
@@ -85,8 +85,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_top(top: nil, bottom: nil, right: nil, left: nil)
-      align(:top, top: top, bottom: bottom, right: right, left: left)
+    def align_top(top: nil, bottom: nil, right: nil, left: nil, max_attempts: 3)
+      align(:top, top: top, bottom: bottom, right: right, left: left, max_attempts: max_attempts)
     end
 
     # Aligns element on bottom of the scrollable container, if the element does not exists it will scroll to find it
@@ -94,8 +94,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_bottom(top: nil, bottom: nil, right: nil, left: nil)
-      align(:bottom, top: top, bottom: bottom, right: right, left: left)
+    def align_bottom(top: nil, bottom: nil, right: nil, left: nil, max_attempts: 3)
+      align(:bottom, top: top, bottom: bottom, right: right, left: left, max_attempts: max_attempts)
     end
 
     # Aligns element on left of the scrollable container, if the element does not exists it will scroll to find it
@@ -103,8 +103,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_left(top: nil, bottom: nil, right: nil, left: nil)
-      align(:left, top: top, bottom: bottom, right: right, left: left)
+    def align_left(top: nil, bottom: nil, right: nil, left: nil, max_attempts: 3)
+      align(:left, top: top, bottom: bottom, right: right, left: left, max_attempts: max_attempts)
     end
 
     # Aligns element on right of the scrollable container, if the element does not exists it will scroll to find it
@@ -112,8 +112,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_right(top: nil, bottom: nil, right: nil, left: nil)
-      align(:right, top: top, bottom: bottom, right: right, left: left)
+    def align_right(top: nil, bottom: nil, right: nil, left: nil,  max_attempts: 3)
+      align(:right, top: top, bottom: bottom, right: right, left: left, max_attempts: max_attempts)
     end
 
     # Aligns element (by default) on top of the scrollable container, if the element does not exists it raise an exception
@@ -121,8 +121,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align!(with = :top, top: nil, bottom: nil, right: nil, left: nil)
-      align(with, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
+    def align!(with = :top, top: nil, bottom: nil, right: nil, left: nil,  max_attempts: 3)
+      align(with, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true, max_attempts: max_attempts)
     end
 
     # Aligns element on top of the scrollable container, if the element does not exists it raise an exception
@@ -130,8 +130,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_top!(top: nil, bottom: nil, right: nil, left: nil)
-      align(:top, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
+    def align_top!(top: nil, bottom: nil, right: nil, left: nil, max_attempts: 3)
+      align(:top, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true, max_attempts: max_attempts)
     end
 
     # Aligns element on bottom of the scrollable container, if the element does not exists it raise an exception
@@ -139,8 +139,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_bottom!(top: nil, bottom: nil, right: nil, left: nil)
-      align(:bottom, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
+    def align_bottom!(top: nil, bottom: nil, right: nil, left: nil,  max_attempts: 3)
+      align(:bottom, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true, max_attempts: max_attempts)
     end
 
     # Aligns element on left of the scrollable container, if the element does not exists it raise an exception
@@ -148,8 +148,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_left!(top: nil, bottom: nil, right: nil, left: nil)
-      align(:left, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
+    def align_left!(top: nil, bottom: nil, right: nil, left: nil,  max_attempts: 3)
+      align(:left, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true, max_attempts: max_attempts)
     end
 
     # Aligns element on right of the scrollable container, if the element does not exists it raise an exception
@@ -157,8 +157,8 @@ module TestaAppiumDriver
     # If the distance is greater than the threshold, it will attempt to realign it up to 2 more times.
     # The retry mechanism allows alignment even for dynamic layouts when elements are hidden/show when scrolling to certain direction
     # @return [TestaAppiumDriver::Locator]
-    def align_right!(top: nil, bottom: nil, right: nil, left: nil)
-      align(:right, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true)
+    def align_right!(top: nil, bottom: nil, right: nil, left: nil,  max_attempts: 3)
+      align(:right, top: top, bottom: bottom, right: right, left: left, scroll_to_find: true, max_attempts: max_attempts)
     end
 
 

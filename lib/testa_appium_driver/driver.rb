@@ -245,26 +245,28 @@ module TestaAppiumDriver
       @driver.long_press_keycode(code)
     end
 
-    def click(x, y)
+    def click(x, y, double: false)
       ws = driver.window_size
       window_width = ws.width.to_i
       window_height = ws.height.to_i
-      if x.kind_of? Integer
+      if x.kind_of?(Integer)
         if x < 0
           x = window_width + x
         end
-      elsif x.kind_of? Float
+      elsif x.kind_of?(Float) && x <= 1.0 && x >= 0
         x = window_width*x
       else
-        raise "x value #{x} not supported"
+        raise "x value #{x} not supported. Use integer as pixel or float (0..1) as percentage of screen"
       end
 
-      if y.kind_of? Integer
+      if y.kind_of?(Integer)
         if y < 0
           y = window_height + y
         end
-      elsif y.kind_of? Float
+      elsif y.kind_of?(Float) && y <= 1.0 && y >= 0
         y = window_height*y
+      else
+        raise "y value #{x} not supported. Use integer as pixel or float (0..1) as percentage of screen"
       end
 
 
@@ -273,7 +275,16 @@ module TestaAppiumDriver
       f1.create_pointer_move(duration: 0, x: x, y: y, origin: ::Selenium::WebDriver::Interactions::PointerMove::VIEWPORT)
       f1.create_pointer_down(:left)
       f1.create_pointer_up(:left)
+      if double
+        f1.create_pause(0.1)
+        f1.create_pointer_down(:left)
+        f1.create_pointer_up(:left)
+      end
       @driver.perform_actions [f1]
+    end
+
+    def double_click(x,y)
+      click(x,y, double: true)
     end
 
 

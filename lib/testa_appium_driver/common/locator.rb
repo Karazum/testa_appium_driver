@@ -60,9 +60,9 @@ module TestaAppiumDriver
       end
 
       selectors[:id] = selectors[:name] unless selectors[:name].nil?
-      if from_element.instance_of?(::Selenium::WebDriver::Element) || from_element.instance_of?(::Appium::Core::Element)
-        @xpath_selector = "//*" # to select current element
-        @xpath_selector += hash_to_xpath(@driver.device, selectors, single)[1..-1]
+      if from_element.instance_of?(::Selenium::WebDriver::Element) || from_element.instance_of?(::Appium::Core::Element) || from_element.instance_of?(::TestaAppiumDriver::Locator)
+        @xpath_selector = "."
+        @xpath_selector += hash_to_xpath(@driver.device, selectors, single)
       else
         @xpath_selector = hash_to_xpath(@driver.device, selectors, single)
       end
@@ -123,7 +123,7 @@ module TestaAppiumDriver
       # elements[2] will be resolved with xpath because we are looking for multiple elements from element
       # and since we are looking for instance 2, [](instance) method will return new "empty locator"
       # we are executing click on that "empty locator" so we have to return the instance 2 of elements for the click
-      if @xpath_selector == "//*[1]" && !@from_element.nil? && @image_selector.nil?
+      if @xpath_selector == ".//*[1]" && !@from_element.nil? && @image_selector.nil?
         return @from_element if @from_element.instance_of?(::Selenium::WebDriver::Element) || @from_element.instance_of?(::Appium::Core::Element)
         return @from_element.execute(skip_cache: skip_cache, force_cache_element: force_cache_element, ignore_implicit_wait: ignore_implicit_wait) if @from_element.instance_of?(TestaAppiumDriver::Locator)
         return @from_element
@@ -303,38 +303,44 @@ module TestaAppiumDriver
       @driver.first_and_last_leaf(execute)
     end
 
-
-    def tap(x = nil, y = nil)
-      click(x, y)
+    def double_click(x = nil, y = nil)
+      click(x,y, double: true)
     end
+
+
 
     # if both x or y, or both are not given, will click in the center of the element
     # @param x If positive integer, will offset the click from the left side, if negative integer, will offset the click  from the right. If float value is given, it will threat it as percentage offset, giving it 0.5 will click in the middle
     # @param y If positive integer, will offset the click from the bottom side, if negative integer, will offset the click  from the top. If float value is given, it will threat it as percentage offset, giving it 0.5 will click in the middle
-    def click(x = nil, y = nil)
-      if !x.nil? && !y.nil?
+    def click(x = nil, y = nil, double: false)
+      if !x.nil? && !y.nil? || double
+
+        x=0.5 if x.nil?
+        y=0.5 if y.nil?
 
         b = self.bounds
-        if x.kind_of? Integer
+        if x.kind_of?(Integer)
           if x >= 0
             x = b.top_left.x + x
           else
             x = b.bottom_right.x + x
           end
-        elsif x.kind_of? Float
+        elsif x.kind_of?(Float) && x <= 1.0 && x >= 0
           x = b.top_left.x + b.width*x
         else
-          raise "x value #{x} not supported"
+          raise "x value #{x} not supported. Use integer as pixel or float (0..1) as percentage of element width"
         end
 
-        if y.kind_of? Integer
+        if y.kind_of?(Integer)
           if y >= 0
-            y = b.bottom_right.y + y
+            y = b.top_left.y + y
           else
-            y = b.top_left + y
+            y = b.bottom_right + y
           end
-        elsif y.kind_of? Float
-          y = b.bottom_right.y + b.height*y
+        elsif y.kind_of?(Float)  && y <= 1.0 && y >= 0
+          y = b.top_left.y + b.height*y
+        else
+          raise "y value #{x} not supported. Use integer as pixel or float (0..1) as percentage of element height"
         end
 
         action_builder = @driver.action
@@ -342,6 +348,11 @@ module TestaAppiumDriver
         f1.create_pointer_move(duration: 0, x: x, y: y, origin: ::Selenium::WebDriver::Interactions::PointerMove::VIEWPORT)
         f1.create_pointer_down(:left)
         f1.create_pointer_up(:left)
+        if double
+          f1.create_pause(0.1)
+          f1.create_pointer_down(:left)
+          f1.create_pointer_up(:left)
+        end
         @driver.perform_actions [f1]
       else
         if @driver.device == :android
@@ -356,6 +367,11 @@ module TestaAppiumDriver
       end
     end
 
+
+    alias_method :tap, :click
+    alias_method :double_tap, :double_click
+
+
     def send_key(*args)
       perform_driver_method(:send_keys, *args)
     end
@@ -369,7 +385,7 @@ module TestaAppiumDriver
     # @return [TestaAppiumDriver::Locator]
     def parent
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "parent") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add parent selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
+      raise "Cannot add parent selector to a retrieved instance of a class array" if (@xpath_selector == ".//*" || @xpath_selector == ".//*[1]")  && !@from_element.nil?
 
       locator = self.dup
       locator.strategy = FIND_STRATEGY_XPATH
@@ -427,7 +443,7 @@ module TestaAppiumDriver
     def siblings
       raise "Cannot add siblings selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
+      raise "Cannot add siblings selector to a retrieved instance of a class array" if (@xpath_selector == ".//*" || @xpath_selector == ".//*[1]")  && !@from_element.nil?
 
       locator = self.dup
       locator.strategy = FIND_STRATEGY_XPATH
@@ -443,7 +459,7 @@ module TestaAppiumDriver
     def preceding_siblings
       raise "Cannot add preceding_siblings selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add preceding_siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
+      raise "Cannot add preceding_siblings selector to a retrieved instance of a class array" if (@xpath_selector == ".//*" || @xpath_selector == ".//*[1]")  && !@from_element.nil?
 
       locator = self.dup
       locator.strategy = FIND_STRATEGY_XPATH
@@ -459,7 +475,7 @@ module TestaAppiumDriver
     def preceding_sibling
       raise "Cannot add preceding_sibling selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "preceding_sibling") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add preceding siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
+      raise "Cannot add preceding siblings selector to a retrieved instance of a class array" if (@xpath_selector == ".//*" || @xpath_selector == ".//*[1]")  && !@from_element.nil?
 
       locator = self.dup
       locator.strategy = FIND_STRATEGY_XPATH
@@ -478,7 +494,7 @@ module TestaAppiumDriver
     def following_siblings
       raise "Cannot add following_siblings selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_siblings") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add following_siblings selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
+      raise "Cannot add following_siblings selector to a retrieved instance of a class array" if (@xpath_selector == ".//*" || @xpath_selector == ".//*[1]")  && !@from_element.nil?
 
       locator = self.dup
       locator.strategy = FIND_STRATEGY_XPATH
@@ -494,7 +510,7 @@ module TestaAppiumDriver
     def following_sibling
       raise "Cannot add following_sibling selector to array" unless @single
       raise StrategyMixException.new(@strategy, @strategy_reason, FIND_STRATEGY_XPATH, "following_sibling") if @strategy != FIND_STRATEGY_XPATH && !@strategy.nil?
-      raise "Cannot add following_sibling selector to a retrieved instance of a class array" if (@xpath_selector == "//*" || @xpath_selector == "//*[1]")  && !@from_element.nil?
+      raise "Cannot add following_sibling selector to a retrieved instance of a class array" if (@xpath_selector == ".//*" || @xpath_selector == ".//*[1]")  && !@from_element.nil?
 
       locator = self.dup
       locator.strategy = FIND_STRATEGY_XPATH
