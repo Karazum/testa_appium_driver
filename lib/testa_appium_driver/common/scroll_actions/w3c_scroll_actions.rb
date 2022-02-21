@@ -39,7 +39,9 @@ module TestaAppiumDriver
           aligned_items = 0
           matches = @locator.execute(skip_cache: true)
           matches.each_with_index do |m|
-            next if previous_match_ids.include?(m.id)
+            if previous_match_ids.include?(m.id)
+              next
+            end
             sa = self.dup
             sa.locator = m
             sa.w3c_align(align_with, false, 1, speed_coef: 2.0)
@@ -56,6 +58,12 @@ module TestaAppiumDriver
           break if !@max_scrolls.nil? && iterations == @max_scrolls
           self.send("page_#{direction}") if aligned_items == 0
           previous_match_ids = matches.map{|ma| ma.id}
+
+          # because ids are getting reused, if we have multiple,
+          # remove first to be on the safe side that we do not skip any
+          if previous_match_ids.count > 1
+            previous_match_ids = previous_match_ids.drop(1)
+          end
         end
       rescue => e
         raise e

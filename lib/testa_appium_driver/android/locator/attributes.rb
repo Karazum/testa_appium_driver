@@ -8,7 +8,9 @@ module TestaAppiumDriver
         elements = self
       else
         elements = execute(*args)
+        raise "Element not found" if elements.nil?
       end
+
 
 
       if elements.kind_of?(::Selenium::WebDriver::Element) || elements.kind_of?(::Appium::Core::Element)
