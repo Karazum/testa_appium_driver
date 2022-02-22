@@ -33,19 +33,37 @@ module TestaAppiumDriver
         end
 
 
-        previous_match_ids = []
 
+        ignore_element_ids = []
+        previous_element = nil
         until is_end_of_scroll?
           aligned_items = 0
+          new_ignore_element_ids = []
           matches = @locator.execute(skip_cache: true)
-          matches.each_with_index do |m|
-            if previous_match_ids.include?(m.id)
+
+          matches.each_with_index do |m, index|
+
+            if ignore_element_ids.include?(m.id)
+              previous_element = m
               next
             end
+
             sa = self.dup
             sa.locator = m
             sa.w3c_align(align_with, false, 1, speed_coef: 2.0)
-            aligned_items += 1
+            is_aligned = sa.is_aligned?(align_with, m)
+            if !is_aligned && !previous_element.nil?
+              new_ignore_element_ids << previous_element.id
+            end
+
+            if is_aligned
+              aligned_items += 1
+            end
+
+            if matches.count == index + 1
+              new_ignore_element_ids << m.id
+            end
+
             elements << m
             if block_given? # block is given
               @locator.driver.invalidate_cache
@@ -53,17 +71,16 @@ module TestaAppiumDriver
             else # the value of block_argument becomes nil if you didn't give a block
               # block was not given
             end
+            previous_element = m
           end
+
           iterations += 1
           break if !@max_scrolls.nil? && iterations == @max_scrolls
           self.send("page_#{direction}") if aligned_items == 0
-          previous_match_ids = matches.map{|ma| ma.id}
+          ignore_element_ids = new_ignore_element_ids.dup
 
-          # because ids are getting reused, if we have multiple,
-          # remove first to be on the safe side that we do not skip any
-          if previous_match_ids.count > 1
-            previous_match_ids = previous_match_ids.drop(1)
-          end
+
+
         end
       rescue => e
         raise e

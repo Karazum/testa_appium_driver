@@ -196,6 +196,25 @@ module TestaAppiumDriver
       w3c_drag_to(x0, y0, x1, y1)
     end
 
+
+    def is_aligned?(with, element)
+      align_bounds = @locator.bounds(force_cache_element: element)
+      case with
+      when :top
+        @align_offset = align_bounds.top_left.y - @bounds.top_left.y - @deadzone[:top]
+      when :bottom
+        @align_offset = @bounds.bottom_right.y - @deadzone[:bottom] - align_bounds.bottom_right.y
+      when :right
+        @align_offset = @bounds.bottom_right.x - @deadzone[:right] - align_bounds.bottom_right.x
+      when :left
+        @align_offset = align_bounds.top_left.x - @bounds.top_left.x - @deadzone[:left]
+      else
+        raise "Unsupported align with option: #{with}"
+      end
+      @align_offset < SCROLL_ALIGNMENT_THRESHOLD
+    end
+  end
+
     private
 
     def is_end_of_scroll?
@@ -228,21 +247,4 @@ module TestaAppiumDriver
       end
     end
 
-    def is_aligned?(with, element)
-      align_bounds = @locator.bounds(force_cache_element: element)
-      case with
-      when :top
-        @align_offset = align_bounds.top_left.y - @bounds.top_left.y - @deadzone[:top]
-      when :bottom
-        @align_offset = @bounds.bottom_right.y - @deadzone[:bottom] - align_bounds.bottom_right.y
-      when :right
-        @align_offset = @bounds.bottom_right.x - @deadzone[:right] - align_bounds.bottom_right.x
-      when :left
-        @align_offset = align_bounds.top_left.x - @bounds.top_left.x - @deadzone[:left]
-      else
-        raise "Unsupported align with option: #{with}"
-      end
-      @align_offset < SCROLL_ALIGNMENT_THRESHOLD
-    end
-  end
 end
