@@ -1,5 +1,5 @@
 module TestaAppiumDriver
-  class ScrollActions
+  module W3cScrollActions
 
 
     # @return [Array]

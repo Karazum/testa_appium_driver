@@ -1,4 +1,4 @@
 module TestaAppiumDriver
-  class ScrollActions
+  module JsonWireScrollActions
   end
 end

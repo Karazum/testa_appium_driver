@@ -5,6 +5,9 @@ module TestaAppiumDriver
 
   # Class for handling scroll actions
   class ScrollActions
+    include W3cScrollActions
+    include JsonWireScrollActions
+
     attr_accessor :locator
     # @param [TestaAppiumDriver::Locator, nil] scrollable container that will be used to determine the bounds for scrolling
     # @param [Hash] params
@@ -213,9 +216,8 @@ module TestaAppiumDriver
       end
       @align_offset < SCROLL_ALIGNMENT_THRESHOLD
     end
-  end
 
-    private
+
 
     def is_end_of_scroll?
       old_elements = @previous_elements
@@ -247,4 +249,5 @@ module TestaAppiumDriver
       end
     end
 
+  end
 end
