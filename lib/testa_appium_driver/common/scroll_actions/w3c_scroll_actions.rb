@@ -76,8 +76,12 @@ module TestaAppiumDriver
 
           iterations += 1
           break if !@max_scrolls.nil? && iterations == @max_scrolls
-          self.send("page_#{direction}") if aligned_items == 0
-          ignore_element_ids = new_ignore_element_ids.dup
+          if aligned_items == 0
+            self.send("page_#{direction}")
+          else
+            ignore_element_ids = new_ignore_element_ids.dup
+          end
+
 
 
 
@@ -244,8 +248,12 @@ module TestaAppiumDriver
       end
       x1, y1 = apply_w3c_correction(x1, y1, direction) if @driver.device == :android
 
+      speed_coef = 1
+      if type == SCROLL_ACTION_TYPE_SCROLL
+        speed_coef = 1.5
+      end
 
-      w3c_action(x0, y0, x1, y1, type)
+      w3c_action(x0, y0, x1, y1, type, speed_coef: speed_coef)
 
     end
 

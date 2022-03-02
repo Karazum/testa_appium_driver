@@ -19,6 +19,7 @@ module TestaAppiumDriver
     def initialize(scrollable, params = {})
       @scrollable = scrollable
       @locator = params[:locator]
+      # TODO: raise error if locator is for multiple, but not for scroll each, chekc other cases aswell
       @deadzone = params[:deadzone]
       @max_scrolls = params[:max_scrolls]
       @default_scroll_strategy = params[:default_scroll_strategy]

@@ -301,7 +301,7 @@ module TestaAppiumDriver
       case device
       when :android
         case automation_name
-        when :uiautomator2
+        when :uiautomator2, :espresso, :Espresso
           require_relative 'android/driver'
         else
           raise "Testa appium driver not supported for #{automation_name} automation"
