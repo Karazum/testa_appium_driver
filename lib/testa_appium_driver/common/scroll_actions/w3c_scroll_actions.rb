@@ -1,4 +1,4 @@
-module TestaAppiumDriver
+module ::TestaAppiumDriver
   module W3cScrollActions
 
 
@@ -36,13 +36,12 @@ module TestaAppiumDriver
 
         ignore_element_ids = []
         previous_element = nil
+
         until is_end_of_scroll?
           aligned_items = 0
           new_ignore_element_ids = []
           matches = @locator.execute(skip_cache: true)
-
           matches.each_with_index do |m, index|
-
             if ignore_element_ids.include?(m.id)
               previous_element = m
               next
@@ -76,6 +75,7 @@ module TestaAppiumDriver
 
           iterations += 1
           break if !@max_scrolls.nil? && iterations == @max_scrolls
+
           if aligned_items == 0
             self.send("page_#{direction}")
           else
