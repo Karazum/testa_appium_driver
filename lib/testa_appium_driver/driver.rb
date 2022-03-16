@@ -83,7 +83,11 @@ module TestaAppiumDriver
       from_element_id = from_element.instance_of?(TestaAppiumDriver::Locator) ? from_element.strategies_and_selectors : nil
 
       begin
+        begin
         ss = strategies_and_selectors[ss_index % strategies_and_selectors.count]
+        rescue ZeroDivisionError
+          puts "aa"
+        end
         ss_index +=1
 
         puts "Executing #{from_element_id ? "from #{from_element.strategy}: #{from_element.strategies_and_selectors} => " : ""}#{ss.keys[0]}: #{ss.values[0]}"

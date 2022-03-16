@@ -13,7 +13,6 @@ module TestaAppiumDriver
 
       @ui_selector = hash_to_uiautomator(selectors, single)
 
-
       if is_scrollable_selector?(selectors, single)
         if selectors[:class] == "android.widget.HorizontalScrollView"
           @scroll_orientation = :horizontal
