@@ -1,4 +1,4 @@
-module TestaAppiumDriver
+module ::TestaAppiumDriver
   #noinspection ALL
   module ClassSelectors
 
